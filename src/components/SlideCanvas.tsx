@@ -74,20 +74,41 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
           padding: size * 0.08,
         }}
       >
+        {slide.showTitle && slide.title.trim() && (
+          <div
+            style={{
+              color: slide.textColor,
+              fontSize: slide.titleSize,
+              lineHeight: 1.05,
+              fontWeight: 900,
+              letterSpacing: "-0.02em",
+              textAlign,
+              maxWidth: "100%",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              marginBottom: size * 0.025,
+              textShadow: slide.overlay === "none" ? "0 2px 12px rgba(0,0,0,0.25)" : "none",
+            }}
+          >
+            {slide.title}
+          </div>
+        )}
         <div
           style={{
             color: slide.textColor,
             fontSize: slide.fontSize,
             lineHeight: 1.15,
-            fontWeight: 700,
+            fontWeight: 600,
             textAlign,
             maxWidth: "100%",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
+            opacity: slide.showTitle && slide.title.trim() ? 0.95 : 1,
             textShadow: slide.overlay === "none" ? "0 2px 12px rgba(0,0,0,0.25)" : "none",
           }}
         >
           {slide.text}
+
         </div>
       </div>
     </div>

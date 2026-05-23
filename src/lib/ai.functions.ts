@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-type Slide = { text: string; imagePrompt: string };
+type Slide = { title: string; text: string; imagePrompt: string };
 
 async function callAI(body: unknown) {
   const key = process.env.LOVABLE_API_KEY;
@@ -58,14 +58,19 @@ export const generateCarousel = createServerFn({ method: "POST" })
                   items: {
                     type: "object",
                     properties: {
-                      text: { type: "string", description: "Texto curto e impactante do slide" },
+                      title: {
+                        type: "string",
+                        description: "Título curto de impacto (2-5 palavras). Pode ser vazio se o slide não precisar de título.",
+                      },
+                      text: { type: "string", description: "Texto curto e impactante do slide (até 12 palavras)" },
                       imagePrompt: {
                         type: "string",
                         description: "Prompt em inglês detalhado para gerar imagem fotográfica/ilustração que combine com o slide",
                       },
                     },
-                    required: ["text", "imagePrompt"],
+                    required: ["title", "text", "imagePrompt"],
                   },
+
                 },
               },
               required: ["slides"],

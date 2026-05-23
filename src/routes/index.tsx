@@ -89,7 +89,7 @@ function Editor() {
       });
       // Build placeholders quickly so user sees structure
       const newSlides: Slide[] = aiSlides.map((s) => ({
-        ...blankSlide(s.text),
+        ...blankSlide(s.text, s.title),
         imagePrompt: s.imagePrompt,
       }));
       setSlides(newSlides);
@@ -379,7 +379,44 @@ function Editor() {
 
         {/* RIGHT — edit panel */}
         <aside className="bg-card rounded-2xl shadow-card p-5 flex flex-col gap-5 h-fit lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
-          <Section title="Texto" icon={<Type className="w-3.5 h-3.5" />}>
+          <Section title="Título" icon={<Type className="w-3.5 h-3.5" />}>
+            <label className="flex items-center gap-2 mb-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={active.showTitle}
+                onChange={(e) => update({ showTitle: e.target.checked })}
+                className="accent-[color:var(--primary)]"
+              />
+              <span className="text-xs text-muted-foreground">
+                Incluir título no slide
+              </span>
+            </label>
+            {active.showTitle && (
+              <>
+                <textarea
+                  value={active.title}
+                  onChange={(e) => update({ title: e.target.value })}
+                  rows={2}
+                  placeholder="Digite o título..."
+                  className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-ring/50"
+                />
+                <div className="flex items-center gap-2 mt-2">
+                  <label className="text-xs text-muted-foreground">Tamanho</label>
+                  <input
+                    type="range"
+                    min={32}
+                    max={160}
+                    value={active.titleSize}
+                    onChange={(e) => update({ titleSize: Number(e.target.value) })}
+                    className="flex-1 accent-[color:var(--primary)]"
+                  />
+                  <span className="text-xs tabular-nums w-8 text-right">{active.titleSize}</span>
+                </div>
+              </>
+            )}
+          </Section>
+
+          <Section title="Texto">
             <textarea
               value={active.text}
               onChange={(e) => update({ text: e.target.value })}
@@ -399,6 +436,7 @@ function Editor() {
               <span className="text-xs tabular-nums w-8 text-right">{active.fontSize}</span>
             </div>
           </Section>
+
 
           <Section title="Fonte">
             <div className="grid grid-cols-2 gap-1.5">

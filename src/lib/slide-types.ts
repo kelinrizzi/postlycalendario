@@ -33,6 +33,9 @@ export type OverlayKind = (typeof OVERLAYS)[number]["value"];
 
 export type Slide = {
   id: string;
+  title: string;
+  showTitle: boolean;
+  titleSize: number;
   text: string;
   imageUrl: string | null;
   imagePrompt: string;
@@ -47,8 +50,11 @@ export type Slide = {
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
-export const blankSlide = (text = "Seu texto aqui"): Slide => ({
+export const blankSlide = (text = "Seu texto aqui", title = ""): Slide => ({
   id: uid(),
+  title,
+  showTitle: title.length > 0,
+  titleSize: 72,
   text,
   imageUrl: null,
   imagePrompt: "",
@@ -60,3 +66,4 @@ export const blankSlide = (text = "Seu texto aqui"): Slide => ({
   vpos: "middle",
   overlay: "dark",
 });
+
