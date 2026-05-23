@@ -610,3 +610,50 @@ function ColorRow({ value, onChange }: { value: string; onChange: (v: string) =>
     </div>
   );
 }
+
+function PreviewFrame({ slide, loading }: { slide: Slide; loading: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const inner = innerRef.current;
+    if (!container || !inner) return;
+    const update = () => {
+      const w = container.clientWidth;
+      const scale = w / CANVAS_PX;
+      inner.style.transform = `scale(${scale})`;
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full max-w-[540px] aspect-square rounded-3xl overflow-hidden shadow-soft bg-white"
+    >
+      <div
+        ref={innerRef}
+        style={{
+          width: CANVAS_PX,
+          height: CANVAS_PX,
+          transformOrigin: "top left",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        <SlideCanvas slide={slide} size={CANVAS_PX} />
+      </div>
+      {loading && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-medium z-10">
+          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Gerando imagem...
+        </div>
+      )}
+    </div>
+  );
+}
+
