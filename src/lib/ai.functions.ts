@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-type Slide = { text: string; imagePrompt: string };
+type Slide = { title: string; text: string; imagePrompt: string };
 
 async function callAI(body: unknown) {
   const key = process.env.LOVABLE_API_KEY;
