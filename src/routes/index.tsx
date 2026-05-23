@@ -89,7 +89,7 @@ function Editor() {
       });
       // Build placeholders quickly so user sees structure
       const newSlides: Slide[] = aiSlides.map((s) => ({
-        ...blankSlide(s.text),
+        ...blankSlide(s.text, s.title),
         imagePrompt: s.imagePrompt,
       }));
       setSlides(newSlides);
