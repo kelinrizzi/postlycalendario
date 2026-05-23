@@ -330,43 +330,8 @@ function Editor() {
 
         {/* CENTER — preview */}
         <main className="flex flex-col items-center justify-start gap-4">
-          <div className="relative w-full max-w-[540px] aspect-square rounded-3xl overflow-hidden shadow-soft bg-white">
-            <div
-              style={{
-                width: CANVAS_PX,
-                height: CANVAS_PX,
-                transform: `scale(${1})`,
-                transformOrigin: "top left",
-                position: "absolute",
-                inset: 0,
-              }}
-              className="origin-top-left"
-            >
-              <div
-                style={{
-                  width: CANVAS_PX,
-                  height: CANVAS_PX,
-                  transform: "scale(var(--scale, 0.5))",
-                  transformOrigin: "top left",
-                }}
-                ref={(el) => {
-                  if (!el) return;
-                  const parent = el.parentElement?.parentElement;
-                  if (parent) {
-                    const w = parent.clientWidth;
-                    el.style.setProperty("--scale", String(w / CANVAS_PX));
-                  }
-                }}
-              >
-                <SlideCanvas slide={active} size={CANVAS_PX} />
-              </div>
-            </div>
-            {genImageId === active.id && (
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-medium">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Gerando imagem...
-              </div>
-            )}
-          </div>
+          <PreviewFrame slide={active} loading={genImageId === active.id} />
+
 
           {/* Carousel strip */}
           <div className="w-full max-w-[540px] flex items-center gap-2">
