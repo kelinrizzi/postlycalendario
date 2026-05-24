@@ -130,3 +130,91 @@ export const editImage = createServerFn({ method: "POST" })
     if (!url) throw new Error("Imagem não editada");
     return { imageUrl: url as string };
   });
+
+export type CalendarPost = {
+  day: number;
+  date: string; // YYYY-MM-DD
+  format: "Reels" | "Carrossel" | "Post" | "Story";
+  pillar: string;
+  title: string;
+  hook: string;
+  caption: string;
+  cta: string;
+  hashtags: string[];
+  bestTime: string;
+};
+
+export const generateStrategy = createServerFn({ method: "POST" })
+  .inputValidator((d: { niche: string; audience: string; goal: string; startDate: string }) => {
+    if (!d?.niche) throw new Error("nicho obrigatório");
+    return {
+      niche: d.niche.slice(0, 300),
+      audience: (d.audience ?? "").slice(0, 300),
+      goal: (d.goal ?? "").slice(0, 300),
+      startDate: d.startDate,
+    };
+  })
+  .handler(async ({ data }) => {
+    const json = await callAI({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Você é um estrategista de conteúdo sênior para Instagram. Crie calendários editoriais de 30 dias variados, com mix de formatos (Reels, Carrossel, Post, Story), pilares de conteúdo coerentes (educativo, inspiracional, bastidores, venda, prova social, entretenimento), copys curtas e ganchos fortes em português brasileiro.",
+        },
+        {
+          role: "user",
+          content: `Crie um calendário editorial de 30 dias começando em ${data.startDate}.\n\nNicho/Marca: ${data.niche}\nPúblico-alvo: ${data.audience || "não especificado"}\nObjetivo principal: ${data.goal || "crescimento e engajamento"}\n\nRegras:\n- Distribua os formatos: ~40% Reels, ~30% Carrossel, ~20% Post, ~10% Story\n- Use pilares variados ao longo da semana\n- Cada gancho deve ter no máximo 15 palavras\n- Hashtags: 5 a 10 por post, relevantes ao nicho\n- bestTime: sugira horário (ex: "19h", "12h")\n- date: comece em ${data.startDate}, incremente 1 dia (formato YYYY-MM-DD)\nRetorne via tool call.`,
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "create_calendar",
+            description: "Retorna calendário editorial de 30 dias",
+            parameters: {
+              type: "object",
+              properties: {
+                strategy: {
+                  type: "string",
+                  description: "Resumo da estratégia geral em 2-3 frases",
+                },
+                pillars: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "4-6 pilares de conteúdo da marca",
+                },
+                posts: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      day: { type: "number" },
+                      date: { type: "string", description: "YYYY-MM-DD" },
+                      format: { type: "string", enum: ["Reels", "Carrossel", "Post", "Story"] },
+                      pillar: { type: "string" },
+                      title: { type: "string", description: "Tema do post (curto)" },
+                      hook: { type: "string", description: "Gancho de abertura impactante" },
+                      caption: { type: "string", description: "Legenda completa pronta para publicar" },
+                      cta: { type: "string", description: "Call to action" },
+                      hashtags: { type: "array", items: { type: "string" } },
+                      bestTime: { type: "string" },
+                    },
+                    required: ["day", "date", "format", "pillar", "title", "hook", "caption", "cta", "hashtags", "bestTime"],
+                  },
+                },
+              },
+              required: ["strategy", "pillars", "posts"],
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "create_calendar" } },
+    });
+    const call = json.choices?.[0]?.message?.tool_calls?.[0];
+    if (!call) throw new Error("Resposta da IA inválida");
+    const args = JSON.parse(call.function.arguments);
+    return args as { strategy: string; pillars: string[]; posts: CalendarPost[] };
+  });

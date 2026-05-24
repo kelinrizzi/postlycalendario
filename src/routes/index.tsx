@@ -21,8 +21,11 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
+  CalendarDays,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
+import { EditorialCalendar } from "@/components/EditorialCalendar";
 import {
   FONTS,
   OVERLAYS,
@@ -59,6 +62,7 @@ function Editor() {
   const [generating, setGenerating] = useState(false);
   const [genImageId, setGenImageId] = useState<string | null>(null);
   const [editImagePrompt, setEditImagePrompt] = useState("");
+  const [tab, setTab] = useState<"creator" | "calendar">("creator");
   const [slides, setSlides] = useState<Slide[]>([blankSlide("Bem-vindo ao Postly ✨")]);
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
@@ -222,7 +226,7 @@ function Editor() {
       </div>
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 bg-card border-b border-border">
+      <header className="flex items-center justify-between gap-4 px-6 py-4 bg-card border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-ig-gradient flex items-center justify-center shadow-soft">
             <Sparkles className="w-5 h-5 text-white" />
@@ -232,23 +236,75 @@ function Editor() {
               <span className="text-ig-gradient">Postly</span>
             </h1>
             <p className="text-xs text-muted-foreground -mt-0.5">
-              Posts & carrosséis com IA
+              Posts, carrosséis e estratégia com IA
             </p>
           </div>
         </div>
-        <button
-          onClick={exportAll}
-          disabled={exporting}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
-        >
-          {exporting ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
-        </button>
+
+        <nav className="hidden sm:flex items-center gap-1 bg-secondary/60 rounded-xl p-1">
+          <button
+            onClick={() => setTab("creator")}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
+              tab === "creator"
+                ? "bg-card shadow-soft text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" /> Criativo
+          </button>
+          <button
+            onClick={() => setTab("calendar")}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
+              tab === "calendar"
+                ? "bg-card shadow-soft text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <CalendarDays className="w-3.5 h-3.5" /> Calendário editorial
+          </button>
+        </nav>
+
+        {tab === "creator" ? (
+          <button
+            onClick={exportAll}
+            disabled={exporting}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
+          >
+            {exporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
+          </button>
+        ) : (
+          <div className="w-[120px]" aria-hidden />
+        )}
       </header>
+
+      {/* Mobile tab switcher */}
+      <nav className="sm:hidden flex items-center gap-1 bg-secondary/60 rounded-xl p-1 mx-4 mt-3">
+        <button
+          onClick={() => setTab("creator")}
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
+            tab === "creator" ? "bg-card shadow-soft" : "text-muted-foreground"
+          }`}
+        >
+          <LayoutGrid className="w-3.5 h-3.5" /> Criativo
+        </button>
+        <button
+          onClick={() => setTab("calendar")}
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
+            tab === "calendar" ? "bg-card shadow-soft" : "text-muted-foreground"
+          }`}
+        >
+          <CalendarDays className="w-3.5 h-3.5" /> Calendário
+        </button>
+      </nav>
+
+      {tab === "calendar" ? (
+        <EditorialCalendar />
+      ) : (
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[320px_1fr_340px] gap-4 p-4">
         {/* LEFT — generation */}
@@ -591,6 +647,7 @@ function Editor() {
           </Section>
         </aside>
       </div>
+      )}
     </div>
   );
 }
