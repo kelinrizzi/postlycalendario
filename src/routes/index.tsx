@@ -21,8 +21,11 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
+  CalendarDays,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
+import { EditorialCalendar } from "@/components/EditorialCalendar";
 import {
   FONTS,
   OVERLAYS,
