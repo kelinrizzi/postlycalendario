@@ -647,6 +647,7 @@ function Editor() {
           </Section>
         </aside>
       </div>
+      )}
     </div>
   );
 }
