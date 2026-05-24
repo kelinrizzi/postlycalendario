@@ -62,6 +62,7 @@ function Editor() {
   const [generating, setGenerating] = useState(false);
   const [genImageId, setGenImageId] = useState<string | null>(null);
   const [editImagePrompt, setEditImagePrompt] = useState("");
+  const [tab, setTab] = useState<"creator" | "calendar">("creator");
   const [slides, setSlides] = useState<Slide[]>([blankSlide("Bem-vindo ao Postly ✨")]);
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
