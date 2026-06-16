@@ -73,6 +73,12 @@ function Editor() {
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [editorTab, setEditorTab] = useState<EditorTab>("text");
+  const [caption, setCaption] = useState("");
+  const [captionKeywords, setCaptionKeywords] = useState<string[]>([]);
+  const [captionHashtags, setCaptionHashtags] = useState<string[]>([]);
+  const [captionLoading, setCaptionLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRefs = useRef<Record<string, HTMLDivElement | null>>({});
