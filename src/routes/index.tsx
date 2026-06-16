@@ -37,7 +37,9 @@ import {
   blankSlide,
   type Slide,
 } from "@/lib/slide-types";
-import { editImage, generateCarousel, generateImage } from "@/lib/ai.functions";
+import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
+
+type EditorTab = "text" | "style" | "image" | "copy";
 
 export const Route = createFileRoute("/")({
   head: () => ({
