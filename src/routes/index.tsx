@@ -603,6 +603,11 @@ function Editor() {
             </div>
           </Section>
 
+          </div>
+          )}
+
+          {editorTab === "style" && (
+          <div className="flex flex-col gap-5">
           <Section title="Cor do texto">
             <ColorRow
               value={active.textColor}
