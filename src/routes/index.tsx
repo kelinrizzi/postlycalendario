@@ -353,6 +353,14 @@ function Editor() {
           <LayoutGrid className="w-3.5 h-3.5" /> Criativo
         </button>
         <button
+          onClick={() => setTab("brand")}
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
+            tab === "brand" ? "bg-card shadow-soft" : "text-muted-foreground"
+          }`}
+        >
+          <Brush className="w-3.5 h-3.5" /> Marca
+        </button>
+        <button
           onClick={() => setTab("calendar")}
           className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
             tab === "calendar" ? "bg-card shadow-soft" : "text-muted-foreground"
@@ -364,7 +372,10 @@ function Editor() {
 
       {tab === "calendar" ? (
         <EditorialCalendar />
+      ) : tab === "brand" ? (
+        <BrandKit brand={brand} update={updateBrand} />
       ) : (
+
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[320px_1fr_340px] gap-4 p-4">
         {/* LEFT — generation */}
