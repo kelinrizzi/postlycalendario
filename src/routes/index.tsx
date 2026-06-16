@@ -30,10 +30,13 @@ import {
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
+import { BrandKit } from "@/components/BrandKit";
+import { useBrand } from "@/hooks/use-brand";
 import {
   FONTS,
   OVERLAYS,
   PRESET_COLORS,
+  applyBrand,
   blankSlide,
   type Slide,
 } from "@/lib/slide-types";
