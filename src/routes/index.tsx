@@ -635,6 +635,11 @@ function Editor() {
             </div>
           </Section>
 
+          </div>
+          )}
+
+          {editorTab === "image" && (
+          <div className="flex flex-col gap-5">
           <Section title="Imagem" icon={<ImageIcon className="w-3.5 h-3.5" />}>
             <textarea
               value={editImagePrompt}
