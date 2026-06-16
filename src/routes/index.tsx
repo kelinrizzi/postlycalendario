@@ -213,7 +213,7 @@ function Editor() {
   };
 
   const addSlide = () => {
-    const s = blankSlide("Novo slide");
+    const s = applyBrand(blankSlide("Novo slide"), brand);
     setSlides((prev) => [...prev, s]);
     setActiveId(s.id);
   };
