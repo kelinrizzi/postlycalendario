@@ -111,6 +111,23 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
 
         </div>
       </div>
+      {slide.logoUrl && (
+        <img
+          src={slide.logoUrl}
+          alt=""
+          crossOrigin="anonymous"
+          style={{
+            position: "absolute",
+            bottom: size * 0.05,
+            right: size * 0.05,
+            height: size * 0.1,
+            maxWidth: size * 0.32,
+            objectFit: "contain",
+            zIndex: 2,
+            filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.25))",
+          }}
+        />
+      )}
     </div>
   );
 });
