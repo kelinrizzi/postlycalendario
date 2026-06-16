@@ -303,6 +303,16 @@ function Editor() {
             <LayoutGrid className="w-3.5 h-3.5" /> Criativo
           </button>
           <button
+            onClick={() => setTab("brand")}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
+              tab === "brand"
+                ? "bg-card shadow-soft text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Brush className="w-3.5 h-3.5" /> Marca
+          </button>
+          <button
             onClick={() => setTab("calendar")}
             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
               tab === "calendar"
