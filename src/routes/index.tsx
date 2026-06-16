@@ -480,6 +480,31 @@ function Editor() {
 
         {/* RIGHT — edit panel */}
         <aside className="bg-card rounded-2xl shadow-card p-5 flex flex-col gap-5 h-fit lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+          <div className="grid grid-cols-4 gap-1 bg-secondary/60 rounded-xl p-1">
+            {(
+              [
+                { v: "text", label: "Texto", icon: <Type className="w-3.5 h-3.5" /> },
+                { v: "style", label: "Estilo", icon: <Palette className="w-3.5 h-3.5" /> },
+                { v: "image", label: "Imagem", icon: <ImageIcon className="w-3.5 h-3.5" /> },
+                { v: "copy", label: "Legenda", icon: <MessageSquareText className="w-3.5 h-3.5" /> },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.v}
+                onClick={() => setEditorTab(t.v)}
+                className={`inline-flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition ${
+                  editorTab === t.v
+                    ? "bg-card shadow-soft text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+
+          {editorTab === "text" && (
+          <div className="flex flex-col gap-5">
           <Section title="Título" icon={<Type className="w-3.5 h-3.5" />}>
             <label className="flex items-center gap-2 mb-2 cursor-pointer select-none">
               <input
