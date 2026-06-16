@@ -23,6 +23,10 @@ import {
   ChevronRight,
   LayoutGrid,
   CalendarDays,
+  Palette,
+  MessageSquareText,
+  Check,
+  Hash,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
@@ -33,7 +37,9 @@ import {
   blankSlide,
   type Slide,
 } from "@/lib/slide-types";
-import { editImage, generateCarousel, generateImage } from "@/lib/ai.functions";
+import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
+
+type EditorTab = "text" | "style" | "image" | "copy";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -67,6 +73,12 @@ function Editor() {
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [editorTab, setEditorTab] = useState<EditorTab>("text");
+  const [caption, setCaption] = useState("");
+  const [captionKeywords, setCaptionKeywords] = useState<string[]>([]);
+  const [captionHashtags, setCaptionHashtags] = useState<string[]>([]);
+  const [captionLoading, setCaptionLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -74,6 +86,37 @@ function Editor() {
   const callGenerate = useServerFn(generateCarousel);
   const callGenImage = useServerFn(generateImage);
   const callEditImage = useServerFn(editImage);
+  const callGenCaption = useServerFn(generateCaption);
+
+  const makeCaption = useCallback(
+    async (slidesForCaption: Slide[]) => {
+      setCaptionLoading(true);
+      setError(null);
+      try {
+        const texts = slidesForCaption
+          .map((s) => [s.title, s.text].filter(Boolean).join(" — "))
+          .filter(Boolean);
+        const { caption, keywords, hashtags } = await callGenCaption({
+          data: { prompt, slides: texts },
+        });
+        setCaption(caption);
+        setCaptionKeywords(keywords);
+        setCaptionHashtags(hashtags);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Erro ao gerar legenda");
+      } finally {
+        setCaptionLoading(false);
+      }
+    },
+    [callGenCaption, prompt],
+  );
+
+  const copyCaption = useCallback(() => {
+    const full = [caption.trim(), captionHashtags.join(" ")].filter(Boolean).join("\n\n");
+    navigator.clipboard?.writeText(full);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }, [caption, captionHashtags]);
 
   const active = useMemo(
     () => slides.find((s) => s.id === activeId) ?? slides[0],
@@ -110,6 +153,8 @@ function Editor() {
           return slide;
         }),
       );
+      // Generate SEO caption with hashtags
+      void makeCaption(newSlides);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao gerar conteúdo");
     } finally {
@@ -435,6 +480,31 @@ function Editor() {
 
         {/* RIGHT — edit panel */}
         <aside className="bg-card rounded-2xl shadow-card p-5 flex flex-col gap-5 h-fit lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+          <div className="grid grid-cols-4 gap-1 bg-secondary/60 rounded-xl p-1">
+            {(
+              [
+                { v: "text", label: "Texto", icon: <Type className="w-3.5 h-3.5" /> },
+                { v: "style", label: "Estilo", icon: <Palette className="w-3.5 h-3.5" /> },
+                { v: "image", label: "Imagem", icon: <ImageIcon className="w-3.5 h-3.5" /> },
+                { v: "copy", label: "Legenda", icon: <MessageSquareText className="w-3.5 h-3.5" /> },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.v}
+                onClick={() => setEditorTab(t.v)}
+                className={`inline-flex flex-col items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition ${
+                  editorTab === t.v
+                    ? "bg-card shadow-soft text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+
+          {editorTab === "text" && (
+          <div className="flex flex-col gap-5">
           <Section title="Título" icon={<Type className="w-3.5 h-3.5" />}>
             <label className="flex items-center gap-2 mb-2 cursor-pointer select-none">
               <input
@@ -558,6 +628,11 @@ function Editor() {
             </div>
           </Section>
 
+          </div>
+          )}
+
+          {editorTab === "style" && (
+          <div className="flex flex-col gap-5">
           <Section title="Cor do texto">
             <ColorRow
               value={active.textColor}
@@ -590,6 +665,11 @@ function Editor() {
             </div>
           </Section>
 
+          </div>
+          )}
+
+          {editorTab === "image" && (
+          <div className="flex flex-col gap-5">
           <Section title="Imagem" icon={<ImageIcon className="w-3.5 h-3.5" />}>
             <textarea
               value={editImagePrompt}
@@ -645,6 +725,88 @@ function Editor() {
               </button>
             )}
           </Section>
+          </div>
+          )}
+
+          {editorTab === "copy" && (
+          <div className="flex flex-col gap-5">
+            <Section title="Legenda (SEO)" icon={<MessageSquareText className="w-3.5 h-3.5" />}>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Legenda otimizada para SEO com 5 hashtags, gerada pela IA.
+              </p>
+              <button
+                onClick={() => makeCaption(slides)}
+                disabled={captionLoading}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-ig-gradient text-white text-xs font-semibold px-2 py-2.5 hover:opacity-95 disabled:opacity-60"
+              >
+                {captionLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5" />
+                )}
+                {caption ? "Gerar nova legenda" : "Gerar legenda"}
+              </button>
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                rows={8}
+                placeholder="A legenda gerada aparecerá aqui — edite à vontade."
+                className="mt-2 w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+              />
+            </Section>
+
+            {captionKeywords.length > 0 && (
+              <Section title="Palavras-chave SEO">
+                <div className="flex flex-wrap gap-1.5">
+                  {captionKeywords.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[11px] px-2 py-1 rounded-full bg-secondary text-secondary-foreground"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            <Section title="Hashtags" icon={<Hash className="w-3.5 h-3.5" />}>
+              {captionHashtags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {captionHashtags.map((h) => (
+                    <span
+                      key={h}
+                      className="text-[11px] px-2 py-1 rounded-full bg-primary/10 text-foreground font-medium"
+                    >
+                      {h}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Gere a legenda para criar 5 hashtags.
+                </p>
+              )}
+            </Section>
+
+            {caption && (
+              <button
+                onClick={copyCaption}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold px-2 py-2.5 hover:bg-secondary/70"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" /> Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" /> Copiar legenda + hashtags
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          )}
         </aside>
       </div>
       )}

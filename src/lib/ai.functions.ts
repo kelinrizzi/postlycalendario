@@ -86,6 +86,74 @@ export const generateCarousel = createServerFn({ method: "POST" })
     return { slides: args.slides as Slide[] };
   });
 
+export const generateCaption = createServerFn({ method: "POST" })
+  .inputValidator((d: { prompt: string; slides: string[] }) => {
+    if (!d?.prompt && (!d?.slides || d.slides.length === 0))
+      throw new Error("conteúdo obrigatório");
+    return {
+      prompt: (d.prompt ?? "").slice(0, 1000),
+      slides: (d.slides ?? []).slice(0, 12).map((s) => String(s).slice(0, 300)),
+    };
+  })
+  .handler(async ({ data }) => {
+    const json = await callAI({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Você é um especialista em copywriting e SEO para Instagram. Escreva legendas envolventes em português brasileiro, otimizadas para SEO (use palavras-chave relevantes que as pessoas pesquisam de forma natural no texto), com um gancho forte na primeira linha, corpo escaneável com quebras de linha e emojis, e uma chamada para ação clara. As hashtags devem ser exatamente 5, relevantes ao tema e ao nicho.",
+        },
+        {
+          role: "user",
+          content: `Tema do post: "${data.prompt}".\n\nConteúdo dos slides:\n${data.slides.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\nGere a legenda (caption) pronta para publicar. Retorne via tool call.`,
+        },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "create_caption",
+            description: "Retorna a legenda do post com SEO e hashtags",
+            parameters: {
+              type: "object",
+              properties: {
+                caption: {
+                  type: "string",
+                  description:
+                    "Legenda completa pronta para publicar, com gancho, corpo escaneável (emojis e quebras de linha), CTA e palavras-chave de SEO inseridas naturalmente. NÃO inclua as hashtags aqui.",
+                },
+                keywords: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "3-6 palavras-chave de SEO usadas na legenda",
+                },
+                hashtags: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Exatamente 5 hashtags relevantes, cada uma começando com #",
+                },
+              },
+              required: ["caption", "keywords", "hashtags"],
+            },
+          },
+        },
+      ],
+      tool_choice: { type: "function", function: { name: "create_caption" } },
+    });
+    const call = json.choices?.[0]?.message?.tool_calls?.[0];
+    if (!call) throw new Error("Resposta da IA inválida");
+    const args = JSON.parse(call.function.arguments) as {
+      caption: string;
+      keywords: string[];
+      hashtags: string[];
+    };
+    const hashtags = (args.hashtags ?? [])
+      .map((h) => (h.startsWith("#") ? h : `#${h}`))
+      .slice(0, 5);
+    return { caption: args.caption, keywords: args.keywords ?? [], hashtags };
+  });
+
 export const generateImage = createServerFn({ method: "POST" })
   .inputValidator((d: { prompt: string }) => {
     if (!d?.prompt) throw new Error("prompt obrigatório");
