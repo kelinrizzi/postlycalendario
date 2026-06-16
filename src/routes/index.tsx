@@ -690,6 +690,88 @@ function Editor() {
               </button>
             )}
           </Section>
+          </div>
+          )}
+
+          {editorTab === "copy" && (
+          <div className="flex flex-col gap-5">
+            <Section title="Legenda (SEO)" icon={<MessageSquareText className="w-3.5 h-3.5" />}>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Legenda otimizada para SEO com 5 hashtags, gerada pela IA.
+              </p>
+              <button
+                onClick={() => makeCaption(slides)}
+                disabled={captionLoading}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-ig-gradient text-white text-xs font-semibold px-2 py-2.5 hover:opacity-95 disabled:opacity-60"
+              >
+                {captionLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5" />
+                )}
+                {caption ? "Gerar nova legenda" : "Gerar legenda"}
+              </button>
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                rows={8}
+                placeholder="A legenda gerada aparecerá aqui — edite à vontade."
+                className="mt-2 w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+              />
+            </Section>
+
+            {captionKeywords.length > 0 && (
+              <Section title="Palavras-chave SEO">
+                <div className="flex flex-wrap gap-1.5">
+                  {captionKeywords.map((k) => (
+                    <span
+                      key={k}
+                      className="text-[11px] px-2 py-1 rounded-full bg-secondary text-secondary-foreground"
+                    >
+                      {k}
+                    </span>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            <Section title="Hashtags" icon={<Hash className="w-3.5 h-3.5" />}>
+              {captionHashtags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {captionHashtags.map((h) => (
+                    <span
+                      key={h}
+                      className="text-[11px] px-2 py-1 rounded-full bg-primary/10 text-foreground font-medium"
+                    >
+                      {h}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Gere a legenda para criar 5 hashtags.
+                </p>
+              )}
+            </Section>
+
+            {caption && (
+              <button
+                onClick={copyCaption}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold px-2 py-2.5 hover:bg-secondary/70"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" /> Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" /> Copiar legenda + hashtags
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          )}
         </aside>
       </div>
       )}
