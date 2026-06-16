@@ -153,6 +153,8 @@ function Editor() {
           return slide;
         }),
       );
+      // Generate SEO caption with hashtags
+      void makeCaption(newSlides);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao gerar conteúdo");
     } finally {
