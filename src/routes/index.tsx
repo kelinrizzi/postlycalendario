@@ -23,6 +23,10 @@ import {
   ChevronRight,
   LayoutGrid,
   CalendarDays,
+  Palette,
+  MessageSquareText,
+  Check,
+  Hash,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
