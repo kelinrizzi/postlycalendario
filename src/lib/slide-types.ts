@@ -46,7 +46,32 @@ export type Slide = {
   align: SlideAlign;
   vpos: SlideVPos;
   overlay: OverlayKind;
+  logoUrl: string | null;
 };
+
+export type Brand = {
+  name: string;
+  logoUrl: string | null;
+  primary: string; // main background / accent color
+  secondary: string; // supporting color
+  textColor: string;
+  fontFamily: string;
+  overlay: OverlayKind;
+  showLogo: boolean;
+  followVisualLine: boolean;
+};
+
+export const defaultBrand = (): Brand => ({
+  name: "",
+  logoUrl: null,
+  primary: "#d62976",
+  secondary: "#4f5bd5",
+  textColor: "#ffffff",
+  fontFamily: FONTS[0].value,
+  overlay: "dark",
+  showLogo: true,
+  followVisualLine: true,
+});
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -65,5 +90,19 @@ export const blankSlide = (text = "Seu texto aqui", title = ""): Slide => ({
   align: "center",
   vpos: "middle",
   overlay: "dark",
+  logoUrl: null,
 });
+
+// Apply the brand's visual line to a slide so the feed stays consistent.
+export const applyBrand = (slide: Slide, brand: Brand): Slide => {
+  if (!brand.followVisualLine) return slide;
+  return {
+    ...slide,
+    fontFamily: brand.fontFamily,
+    textColor: brand.textColor,
+    bgColor: brand.primary,
+    overlay: brand.overlay,
+    logoUrl: brand.showLogo ? brand.logoUrl : null,
+  };
+};
 
