@@ -141,10 +141,9 @@ function Editor() {
         data: { prompt, slideCount },
       });
       // Build placeholders quickly so user sees structure
-      const newSlides: Slide[] = aiSlides.map((s) => ({
-        ...blankSlide(s.text, s.title),
-        imagePrompt: s.imagePrompt,
-      }));
+      const newSlides: Slide[] = aiSlides.map((s) =>
+        applyBrand({ ...blankSlide(s.text, s.title), imagePrompt: s.imagePrompt }, brand),
+      );
       setSlides(newSlides);
       setActiveId(newSlides[0].id);
 
