@@ -86,6 +86,37 @@ function Editor() {
   const callGenerate = useServerFn(generateCarousel);
   const callGenImage = useServerFn(generateImage);
   const callEditImage = useServerFn(editImage);
+  const callGenCaption = useServerFn(generateCaption);
+
+  const makeCaption = useCallback(
+    async (slidesForCaption: Slide[]) => {
+      setCaptionLoading(true);
+      setError(null);
+      try {
+        const texts = slidesForCaption
+          .map((s) => [s.title, s.text].filter(Boolean).join(" — "))
+          .filter(Boolean);
+        const { caption, keywords, hashtags } = await callGenCaption({
+          data: { prompt, slides: texts },
+        });
+        setCaption(caption);
+        setCaptionKeywords(keywords);
+        setCaptionHashtags(hashtags);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Erro ao gerar legenda");
+      } finally {
+        setCaptionLoading(false);
+      }
+    },
+    [callGenCaption, prompt],
+  );
+
+  const copyCaption = useCallback(() => {
+    const full = [caption.trim(), captionHashtags.join(" ")].filter(Boolean).join("\n\n");
+    navigator.clipboard?.writeText(full);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }, [caption, captionHashtags]);
 
   const active = useMemo(
     () => slides.find((s) => s.id === activeId) ?? slides[0],
