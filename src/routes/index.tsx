@@ -27,6 +27,8 @@ import {
   MessageSquareText,
   Check,
   Hash,
+  Brush,
+
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
