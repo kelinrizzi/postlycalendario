@@ -27,18 +27,13 @@ import {
   MessageSquareText,
   Check,
   Hash,
-  Brush,
-
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
-import { BrandKit } from "@/components/BrandKit";
-import { useBrand } from "@/hooks/use-brand";
 import {
   FONTS,
   OVERLAYS,
   PRESET_COLORS,
-  applyBrand,
   blankSlide,
   type Slide,
 } from "@/lib/slide-types";
@@ -73,8 +68,7 @@ function Editor() {
   const [generating, setGenerating] = useState(false);
   const [genImageId, setGenImageId] = useState<string | null>(null);
   const [editImagePrompt, setEditImagePrompt] = useState("");
-  const [tab, setTab] = useState<"creator" | "calendar" | "brand">("creator");
-  const { brand, update: updateBrand } = useBrand();
+  const [tab, setTab] = useState<"creator" | "calendar">("creator");
   const [slides, setSlides] = useState<Slide[]>([blankSlide("Bem-vindo ao Postly ✨")]);
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
@@ -141,9 +135,10 @@ function Editor() {
         data: { prompt, slideCount },
       });
       // Build placeholders quickly so user sees structure
-      const newSlides: Slide[] = aiSlides.map((s) =>
-        applyBrand({ ...blankSlide(s.text, s.title), imagePrompt: s.imagePrompt }, brand),
-      );
+      const newSlides: Slide[] = aiSlides.map((s) => ({
+        ...blankSlide(s.text, s.title),
+        imagePrompt: s.imagePrompt,
+      }));
       setSlides(newSlides);
       setActiveId(newSlides[0].id);
 
@@ -213,7 +208,7 @@ function Editor() {
   };
 
   const addSlide = () => {
-    const s = applyBrand(blankSlide("Novo slide"), brand);
+    const s = blankSlide("Novo slide");
     setSlides((prev) => [...prev, s]);
     setActiveId(s.id);
   };
@@ -303,16 +298,6 @@ function Editor() {
             <LayoutGrid className="w-3.5 h-3.5" /> Criativo
           </button>
           <button
-            onClick={() => setTab("brand")}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
-              tab === "brand"
-                ? "bg-card shadow-soft text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Brush className="w-3.5 h-3.5" /> Marca
-          </button>
-          <button
             onClick={() => setTab("calendar")}
             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
               tab === "calendar"
@@ -353,14 +338,6 @@ function Editor() {
           <LayoutGrid className="w-3.5 h-3.5" /> Criativo
         </button>
         <button
-          onClick={() => setTab("brand")}
-          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
-            tab === "brand" ? "bg-card shadow-soft" : "text-muted-foreground"
-          }`}
-        >
-          <Brush className="w-3.5 h-3.5" /> Marca
-        </button>
-        <button
           onClick={() => setTab("calendar")}
           className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
             tab === "calendar" ? "bg-card shadow-soft" : "text-muted-foreground"
@@ -372,8 +349,6 @@ function Editor() {
 
       {tab === "calendar" ? (
         <EditorialCalendar />
-      ) : tab === "brand" ? (
-        <BrandKit brand={brand} update={updateBrand} />
       ) : (
 
 
