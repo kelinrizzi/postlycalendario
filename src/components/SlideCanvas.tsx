@@ -111,6 +111,24 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
 
         </div>
       </div>
+      {slide.handle.trim() && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: size * 0.05,
+            left: size * 0.05,
+            zIndex: 2,
+            color: slide.textColor,
+            fontFamily: slide.fontFamily,
+            fontSize: size * 0.04,
+            fontWeight: 700,
+            opacity: 0.92,
+            textShadow: slide.overlay === "none" ? "0 2px 12px rgba(0,0,0,0.25)" : "none",
+          }}
+        >
+          @{slide.handle.replace(/^@/, "")}
+        </div>
+      )}
       {slide.logoUrl && (
         <img
           src={slide.logoUrl}

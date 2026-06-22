@@ -549,7 +549,7 @@ function Editor() {
                   value={active.title}
                   onChange={(e) => update({ title: e.target.value })}
                   rows={2}
-                  placeholder="Digite o título..."
+                  placeholder="Digite o título do slide..."
                   className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-ring/50"
                 />
                 <div className="flex items-center gap-2 mt-2">
@@ -573,6 +573,7 @@ function Editor() {
               value={active.text}
               onChange={(e) => update({ text: e.target.value })}
               rows={3}
+              placeholder="Digite o texto principal..."
               className="w-full resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
             />
             <div className="flex items-center gap-2 mt-2">
@@ -587,6 +588,24 @@ function Editor() {
               />
               <span className="text-xs tabular-nums w-8 text-right">{active.fontSize}</span>
             </div>
+          </Section>
+
+          <Section title="@ do perfil">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                @
+              </span>
+              <input
+                type="text"
+                value={active.handle.replace(/^@/, "")}
+                onChange={(e) => update({ handle: e.target.value })}
+                placeholder="seuperfil"
+                className="w-full rounded-xl border border-input bg-background pl-7 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              Aparece no canto inferior esquerdo do slide.
+            </p>
           </Section>
 
 
