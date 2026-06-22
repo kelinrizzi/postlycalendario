@@ -56,6 +56,23 @@ export function BrandKit({ brand, update }: Props) {
           />
         </Field>
 
+        <Field label="@ do perfil">
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+              @
+            </span>
+            <input
+              value={brand.handle.replace(/^@/, "")}
+              onChange={(e) => update({ handle: e.target.value })}
+              placeholder="seuperfil"
+              className="w-full rounded-xl border border-input bg-background pl-7 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+            />
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1.5">
+            Aplicado automaticamente nos slides quando a linha visual está ativa.
+          </p>
+        </Field>
+
         {/* Logo */}
         <Field label="Logo">
           <div className="flex items-center gap-3">
@@ -203,6 +220,14 @@ export function BrandKit({ brand, update }: Props) {
               alt="logo"
               className="absolute bottom-5 right-5 h-10 max-w-[40%] object-contain z-10 drop-shadow"
             />
+          )}
+          {brand.handle.trim() && (
+            <div
+              className="absolute bottom-5 left-5 z-10 font-bold text-sm"
+              style={{ color: brand.textColor, fontFamily: brand.fontFamily }}
+            >
+              @{brand.handle.replace(/^@/, "")}
+            </div>
           )}
         </div>
       </aside>

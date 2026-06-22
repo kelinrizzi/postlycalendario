@@ -9,6 +9,7 @@ export const FONTS = [
   { label: "DM Serif", value: '"DM Serif Display", serif' },
   { label: "Space Grotesk", value: '"Space Grotesk", sans-serif' },
   { label: "Caveat", value: '"Caveat", cursive' },
+  { label: "Montserrat", value: '"Montserrat", sans-serif' },
 ] as const;
 
 export const PRESET_COLORS = [
@@ -47,11 +48,13 @@ export type Slide = {
   vpos: SlideVPos;
   overlay: OverlayKind;
   logoUrl: string | null;
+  handle: string;
 };
 
 export type Brand = {
   name: string;
   logoUrl: string | null;
+  handle: string;
   primary: string; // main background / accent color
   secondary: string; // supporting color
   textColor: string;
@@ -64,6 +67,7 @@ export type Brand = {
 export const defaultBrand = (): Brand => ({
   name: "",
   logoUrl: null,
+  handle: "",
   primary: "#d62976",
   secondary: "#4f5bd5",
   textColor: "#ffffff",
@@ -75,7 +79,7 @@ export const defaultBrand = (): Brand => ({
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
-export const blankSlide = (text = "Seu texto aqui", title = ""): Slide => ({
+export const blankSlide = (text = "Seu texto aqui", title = "", handle = ""): Slide => ({
   id: uid(),
   title,
   showTitle: title.length > 0,
@@ -91,6 +95,7 @@ export const blankSlide = (text = "Seu texto aqui", title = ""): Slide => ({
   vpos: "middle",
   overlay: "dark",
   logoUrl: null,
+  handle,
 });
 
 // Apply the brand's visual line to a slide so the feed stays consistent.
@@ -103,6 +108,7 @@ export const applyBrand = (slide: Slide, brand: Brand): Slide => {
     bgColor: brand.primary,
     overlay: brand.overlay,
     logoUrl: brand.showLogo ? brand.logoUrl : null,
+    handle: brand.handle || slide.handle,
   };
 };
 
