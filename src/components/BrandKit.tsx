@@ -221,6 +221,14 @@ export function BrandKit({ brand, update }: Props) {
               className="absolute bottom-5 right-5 h-10 max-w-[40%] object-contain z-10 drop-shadow"
             />
           )}
+          {brand.handle.trim() && (
+            <div
+              className="absolute bottom-5 left-5 z-10 font-bold text-sm"
+              style={{ color: brand.textColor, fontFamily: brand.fontFamily }}
+            >
+              @{brand.handle.replace(/^@/, "")}
+            </div>
+          )}
         </div>
       </aside>
     </div>
