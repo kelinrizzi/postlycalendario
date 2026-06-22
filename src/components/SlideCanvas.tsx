@@ -129,5 +129,6 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
           @{slide.handle.replace(/^@/, "")}
         </div>
       )}
+    </div>
   );
 });
