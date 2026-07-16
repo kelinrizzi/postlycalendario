@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
+import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
 import {
   FONTS,
   OVERLAYS,
@@ -40,6 +41,7 @@ import {
 import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
 
 type EditorTab = "text" | "style" | "image" | "copy";
+const STRATEGY_KEY = "postly:strategy-seen";
 
 export const Route = createFileRoute("/")({
   head: () => ({
