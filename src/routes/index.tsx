@@ -82,7 +82,6 @@ function Editor() {
   const [captionLoading, setCaptionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [strategyOpen, setStrategyOpen] = useState(false);
-  const [strategy, setStrategy] = useState<StrategyAnswers | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
