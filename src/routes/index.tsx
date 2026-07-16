@@ -135,13 +135,14 @@ function Editor() {
   const update = (patch: Partial<Slide>) =>
     setSlides((prev) => prev.map((s) => (s.id === active.id ? { ...s, ...patch } : s)));
 
-  const onGenerate = async () => {
-    if (!prompt.trim()) return;
+  const onGenerate = async (overridePrompt?: string) => {
+    const usePrompt = (overridePrompt ?? prompt).trim();
+    if (!usePrompt) return;
     setGenerating(true);
     setError(null);
     try {
       const { slides: aiSlides } = await callGenerate({
-        data: { prompt, slideCount },
+        data: { prompt: usePrompt, slideCount },
       });
       // Build placeholders quickly so user sees structure
       const newSlides: Slide[] = aiSlides.map((s) => ({
@@ -169,6 +170,14 @@ function Editor() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const onStrategyFinish = (answers: StrategyAnswers, brief: string) => {
+    setStrategy(answers);
+    setPrompt(brief);
+    setStrategyOpen(false);
+    if (typeof window !== "undefined") localStorage.setItem(STRATEGY_KEY, "1");
+    void onGenerate(brief);
   };
 
   const regenImage = async () => {
