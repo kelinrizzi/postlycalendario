@@ -171,8 +171,7 @@ function Editor() {
     }
   };
 
-  const onStrategyFinish = (answers: StrategyAnswers, brief: string) => {
-    setStrategy(answers);
+  const onStrategyFinish = (_answers: StrategyAnswers, brief: string) => {
     setPrompt(brief);
     setStrategyOpen(false);
     if (typeof window !== "undefined") localStorage.setItem(STRATEGY_KEY, "1");
