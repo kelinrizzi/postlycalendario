@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { EditorialCalendar } from "@/components/EditorialCalendar";
+import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
 import {
   FONTS,
   OVERLAYS,
@@ -40,6 +41,7 @@ import {
 import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
 
 type EditorTab = "text" | "style" | "image" | "copy";
+const STRATEGY_KEY = "postly:strategy-seen";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -79,6 +81,12 @@ function Editor() {
   const [captionHashtags, setCaptionHashtags] = useState<string[]>([]);
   const [captionLoading, setCaptionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [strategyOpen, setStrategyOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!localStorage.getItem(STRATEGY_KEY)) setStrategyOpen(true);
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -126,13 +134,14 @@ function Editor() {
   const update = (patch: Partial<Slide>) =>
     setSlides((prev) => prev.map((s) => (s.id === active.id ? { ...s, ...patch } : s)));
 
-  const onGenerate = async () => {
-    if (!prompt.trim()) return;
+  const onGenerate = async (overridePrompt?: string) => {
+    const usePrompt = (overridePrompt ?? prompt).trim();
+    if (!usePrompt) return;
     setGenerating(true);
     setError(null);
     try {
       const { slides: aiSlides } = await callGenerate({
-        data: { prompt, slideCount },
+        data: { prompt: usePrompt, slideCount },
       });
       // Build placeholders quickly so user sees structure
       const newSlides: Slide[] = aiSlides.map((s) => ({
@@ -160,6 +169,13 @@ function Editor() {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const onStrategyFinish = (_answers: StrategyAnswers, brief: string) => {
+    setPrompt(brief);
+    setStrategyOpen(false);
+    if (typeof window !== "undefined") localStorage.setItem(STRATEGY_KEY, "1");
+    void onGenerate(brief);
   };
 
   const regenImage = async () => {
@@ -256,6 +272,12 @@ function Editor() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <StrategyModal
+        open={strategyOpen}
+        onClose={() => setStrategyOpen(false)}
+        onFinish={onStrategyFinish}
+      />
+
       {/* Hidden full-size canvases for export */}
       <div style={{ position: "fixed", left: -99999, top: 0 }} aria-hidden>
         {slides.map((s) => (
@@ -310,18 +332,26 @@ function Editor() {
         </nav>
 
         {tab === "creator" ? (
-          <button
-            onClick={exportAll}
-            disabled={exporting}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
-          >
-            {exporting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Download className="w-4 h-4" />
-            )}
-            Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setStrategyOpen(true)}
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/70"
+            >
+              <Sparkles className="w-4 h-4" /> Estratégia
+            </button>
+            <button
+              onClick={exportAll}
+              disabled={exporting}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
+            >
+              {exporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
+            </button>
+          </div>
         ) : (
           <div className="w-[120px]" aria-hidden />
         )}
@@ -381,7 +411,7 @@ function Editor() {
             />
           </div>
           <button
-            onClick={onGenerate}
+            onClick={() => onGenerate()}
             disabled={generating || !prompt.trim()}
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-ig-gradient text-white px-4 py-3 font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
           >
