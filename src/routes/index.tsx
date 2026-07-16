@@ -274,6 +274,12 @@ function Editor() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <StrategyModal
+        open={strategyOpen}
+        onClose={() => setStrategyOpen(false)}
+        onFinish={onStrategyFinish}
+      />
+
       {/* Hidden full-size canvases for export */}
       <div style={{ position: "fixed", left: -99999, top: 0 }} aria-hidden>
         {slides.map((s) => (
