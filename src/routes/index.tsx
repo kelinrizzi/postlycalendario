@@ -399,7 +399,7 @@ function Editor() {
             />
           </div>
           <button
-            onClick={onGenerate}
+            onClick={() => onGenerate()}
             disabled={generating || !prompt.trim()}
             className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-ig-gradient text-white px-4 py-3 font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
           >
