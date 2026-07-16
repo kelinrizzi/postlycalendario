@@ -81,6 +81,13 @@ function Editor() {
   const [captionHashtags, setCaptionHashtags] = useState<string[]>([]);
   const [captionLoading, setCaptionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [strategyOpen, setStrategyOpen] = useState(false);
+  const [strategy, setStrategy] = useState<StrategyAnswers | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!localStorage.getItem(STRATEGY_KEY)) setStrategyOpen(true);
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRefs = useRef<Record<string, HTMLDivElement | null>>({});
