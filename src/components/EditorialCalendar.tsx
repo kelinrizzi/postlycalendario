@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   CalendarDays,
@@ -11,6 +11,8 @@ import {
   Clock,
   Hash,
   Target,
+  Save,
+  RefreshCw,
 } from "lucide-react";
 import { generateStrategy, type CalendarPost } from "@/lib/ai.functions";
 
@@ -21,25 +23,92 @@ const FORMAT_STYLES: Record<CalendarPost["format"], string> = {
   Story: "bg-sky-100 text-sky-700 border-sky-200",
 };
 
+const STORAGE_KEY = "editorial-calendar-v1";
+
+type PersistedCalendar = {
+  niche: string;
+  audience: string;
+  goal: string;
+  startDate: string;
+  strategy: string;
+  pillars: string[];
+  posts: CalendarPost[];
+  savedAt: string;
+};
+
 export function EditorialCalendar() {
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
-  const [niche, setNiche] = useState("");
-  const [audience, setAudience] = useState("");
-  const [goal, setGoal] = useState("");
-  const [startDate, setStartDate] = useState(today);
+
+  // Load persisted state synchronously (client only)
+  const initial = useMemo<PersistedCalendar | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as PersistedCalendar) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const [niche, setNiche] = useState(initial?.niche ?? "");
+  const [audience, setAudience] = useState(initial?.audience ?? "");
+  const [goal, setGoal] = useState(initial?.goal ?? "");
+  const [startDate, setStartDate] = useState(initial?.startDate ?? today);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [strategy, setStrategy] = useState<string>("");
-  const [pillars, setPillars] = useState<string[]>([]);
-  const [posts, setPosts] = useState<CalendarPost[]>([]);
-  const [selected, setSelected] = useState<CalendarPost | null>(null);
+  const [strategy, setStrategy] = useState<string>(initial?.strategy ?? "");
+  const [pillars, setPillars] = useState<string[]>(initial?.pillars ?? []);
+  const [posts, setPosts] = useState<CalendarPost[]>(initial?.posts ?? []);
+  const [selected, setSelected] = useState<CalendarPost | null>(
+    initial?.posts?.[0] ?? null,
+  );
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [formatFilter, setFormatFilter] = useState<"all" | CalendarPost["format"]>("all");
+  const [savedAt, setSavedAt] = useState<string | null>(initial?.savedAt ?? null);
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const call = useServerFn(generateStrategy);
 
+  const persist = (data: Partial<PersistedCalendar> = {}) => {
+    if (typeof window === "undefined") return;
+    const payload: PersistedCalendar = {
+      niche,
+      audience,
+      goal,
+      startDate,
+      strategy,
+      pillars,
+      posts,
+      savedAt: new Date().toISOString(),
+      ...data,
+    };
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      setSavedAt(payload.savedAt);
+    } catch {
+      /* ignore quota */
+    }
+  };
+
+  const onSave = () => {
+    if (!posts.length) return;
+    persist();
+    setJustSaved(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setJustSaved(false), 1800);
+  };
+
   const onGenerate = async () => {
     if (!niche.trim()) return;
+    if (
+      posts.length > 0 &&
+      !window.confirm(
+        "Isso vai substituir o calendário atual salvo. Deseja continuar?",
+      )
+    ) {
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -48,6 +117,11 @@ export function EditorialCalendar() {
       setPillars(res.pillars);
       setPosts(res.posts);
       setSelected(res.posts[0] ?? null);
+      persist({
+        strategy: res.strategy,
+        pillars: res.pillars,
+        posts: res.posts,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao gerar calendário");
     } finally {
