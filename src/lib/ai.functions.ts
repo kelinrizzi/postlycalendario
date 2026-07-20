@@ -229,11 +229,11 @@ export const generateStrategy = createServerFn({ method: "POST" })
         {
           role: "system",
           content:
-            "Você é um estrategista de conteúdo sênior para Instagram. Crie calendários editoriais de 30 dias variados, com mix de formatos (Reels, Carrossel, Post, Story), pilares de conteúdo coerentes (educativo, inspiracional, bastidores, venda, prova social, entretenimento), copys curtas e ganchos fortes em português brasileiro.",
+            "Você é um estrategista de conteúdo sênior para Instagram com forte especialização em SEO social (Instagram SEO + Google Discover). Todo calendário editorial que você cria é OTIMIZADO PARA SEO do nicho informado: mapeia palavras-chave primárias e secundárias reais do nicho, intenção de busca, termos long-tail e perguntas frequentes do público, e distribui essas keywords de forma natural em títulos, ganchos, legendas, CTAs e hashtags. Escreva sempre em português brasileiro, com ganchos curtos e copys prontas para publicar.",
         },
         {
           role: "user",
-          content: `Crie um calendário editorial de 30 dias começando em ${data.startDate}.\n\nNicho/Marca: ${data.niche}\nPúblico-alvo: ${data.audience || "não especificado"}\nObjetivo principal: ${data.goal || "crescimento e engajamento"}\n\nRegras:\n- Distribua os formatos: ~40% Reels, ~30% Carrossel, ~20% Post, ~10% Story\n- Use pilares variados ao longo da semana\n- Cada gancho deve ter no máximo 15 palavras\n- Hashtags: 5 a 10 por post, relevantes ao nicho\n- bestTime: sugira horário (ex: "19h", "12h")\n- date: comece em ${data.startDate}, incremente 1 dia (formato YYYY-MM-DD)\nRetorne via tool call.`,
+          content: `Crie um calendário editorial de 30 dias começando em ${data.startDate}, TOTALMENTE OTIMIZADO PARA SEO do nicho abaixo.\n\nNicho/Marca: ${data.niche}\nPúblico-alvo: ${data.audience || "não especificado"}\nObjetivo principal: ${data.goal || "crescimento e engajamento"}\n\nSEO obrigatório em cada post:\n- Descubra e utilize palavras-chave reais que o público desse nicho pesquisa no Instagram e no Google\n- title: inclua a palavra-chave primária do post no início\n- hook: use linguagem de busca (perguntas, "como", "melhor", "passo a passo", números)\n- caption: primeiras 125 caracteres com keyword primária + 1 secundária (aparece no preview do feed); use sinônimos e termos semanticamente relacionados (LSI) ao longo do texto; escaneável, com quebras\n- alt/descrição do tema deve ser descritiva do nicho (não genérica)\n- hashtags: 5 a 10, misturando 1 broad (alto volume), 2-3 nicho (médio volume) e 2-3 long-tail (baixa concorrência) — todas relevantes ao nicho\n- cta: verbo de ação + benefício claro\n- No campo strategy, cite explicitamente as 5-8 palavras-chave principais do nicho que guiaram o calendário\n\nRegras de mix:\n- Distribua os formatos: ~40% Reels, ~30% Carrossel, ~20% Post, ~10% Story\n- Use pilares variados ao longo da semana (educativo, inspiracional, bastidores, venda, prova social, entretenimento) — cada pilar deve reforçar keywords do nicho\n- Cada gancho deve ter no máximo 15 palavras\n- bestTime: sugira horário (ex: "19h", "12h")\n- date: comece em ${data.startDate}, incremente 1 dia (formato YYYY-MM-DD)\n\nRetorne via tool call.`,
         },
       ],
       tools: [
@@ -241,18 +241,19 @@ export const generateStrategy = createServerFn({ method: "POST" })
           type: "function",
           function: {
             name: "create_calendar",
-            description: "Retorna calendário editorial de 30 dias",
+            description: "Retorna calendário editorial de 30 dias otimizado para SEO",
             parameters: {
               type: "object",
               properties: {
                 strategy: {
                   type: "string",
-                  description: "Resumo da estratégia geral em 2-3 frases",
+                  description:
+                    "Resumo da estratégia em 2-3 frases + lista das 5-8 palavras-chave SEO principais do nicho usadas no calendário",
                 },
                 pillars: {
                   type: "array",
                   items: { type: "string" },
-                  description: "4-6 pilares de conteúdo da marca",
+                  description: "4-6 pilares de conteúdo da marca, alinhados às keywords do nicho",
                 },
                 posts: {
                   type: "array",
@@ -263,11 +264,26 @@ export const generateStrategy = createServerFn({ method: "POST" })
                       date: { type: "string", description: "YYYY-MM-DD" },
                       format: { type: "string", enum: ["Reels", "Carrossel", "Post", "Story"] },
                       pillar: { type: "string" },
-                      title: { type: "string", description: "Tema do post (curto)" },
-                      hook: { type: "string", description: "Gancho de abertura impactante" },
-                      caption: { type: "string", description: "Legenda completa pronta para publicar" },
-                      cta: { type: "string", description: "Call to action" },
-                      hashtags: { type: "array", items: { type: "string" } },
+                      title: {
+                        type: "string",
+                        description: "Tema do post (curto), começando com a keyword primária",
+                      },
+                      hook: {
+                        type: "string",
+                        description: "Gancho de abertura com linguagem de busca (perguntas, como, melhor, números)",
+                      },
+                      caption: {
+                        type: "string",
+                        description:
+                          "Legenda pronta para publicar; primeiros 125 caracteres com keyword primária + 1 secundária; use LSI e termos semanticamente relacionados",
+                      },
+                      cta: { type: "string", description: "Call to action com verbo + benefício" },
+                      hashtags: {
+                        type: "array",
+                        items: { type: "string" },
+                        description:
+                          "5-10 hashtags: 1 broad + 2-3 nicho + 2-3 long-tail, todas relevantes ao nicho",
+                      },
                       bestTime: { type: "string" },
                     },
                     required: ["day", "date", "format", "pillar", "title", "hook", "caption", "cta", "hashtags", "bestTime"],
