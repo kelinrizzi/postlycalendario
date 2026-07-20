@@ -276,6 +276,10 @@ export function EditorialCalendar() {
             <>
               <Loader2 className="w-4 h-4 animate-spin" /> Planejando...
             </>
+          ) : posts.length > 0 ? (
+            <>
+              <RefreshCw className="w-4 h-4" /> Gerar novo calendário
+            </>
           ) : (
             <>
               <Wand2 className="w-4 h-4" /> Gerar calendário
@@ -290,12 +294,33 @@ export function EditorialCalendar() {
         )}
 
         {posts.length > 0 && (
-          <button
-            onClick={exportCSV}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-secondary text-secondary-foreground px-3 py-2 text-sm font-medium hover:bg-secondary/70"
-          >
-            <Download className="w-4 h-4" /> Exportar CSV
-          </button>
+          <>
+            <button
+              onClick={onSave}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[color:var(--primary)]/30 bg-primary/5 text-foreground px-3 py-2 text-sm font-semibold hover:bg-primary/10"
+            >
+              {justSaved ? (
+                <>
+                  <Check className="w-4 h-4 text-emerald-600" /> Salvo!
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" /> Salvar calendário
+                </>
+              )}
+            </button>
+            {savedLabel && (
+              <p className="text-[11px] text-muted-foreground text-center -mt-2">
+                Último salvamento: {savedLabel}
+              </p>
+            )}
+            <button
+              onClick={exportCSV}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-secondary text-secondary-foreground px-3 py-2 text-sm font-medium hover:bg-secondary/70"
+            >
+              <Download className="w-4 h-4" /> Exportar CSV
+            </button>
+          </>
         )}
       </aside>
 
