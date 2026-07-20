@@ -163,11 +163,42 @@ export function EditorialCalendar() {
     URL.revokeObjectURL(url);
   };
 
+  // Auto-persist whenever calendar data changes so tab switches never lose it
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!posts.length) return;
+    try {
+      const payload: PersistedCalendar = {
+        niche,
+        audience,
+        goal,
+        startDate,
+        strategy,
+        pillars,
+        posts,
+        savedAt: savedAt ?? new Date().toISOString(),
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts, strategy, pillars, niche, audience, goal, startDate]);
+
   const filtered = posts.filter((p) => formatFilter === "all" || p.format === formatFilter);
 
   // Build month grid: align first post day-of-week
   const firstDate = posts[0] ? new Date(posts[0].date) : null;
   const leadingBlanks = firstDate ? firstDate.getDay() : 0;
+
+  const savedLabel = savedAt
+    ? new Date(savedAt).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4 p-4">
