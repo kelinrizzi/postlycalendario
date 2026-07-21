@@ -615,45 +615,27 @@ function Editor() {
 
 
           <Section title="Fonte">
-            <div className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-1.5">
               {FONTS.map((f) => {
                 const isActive = active.fontFamily === f.value;
                 return (
                   <button
                     key={f.label}
                     onClick={() => update({ fontFamily: f.value })}
-                    className={`group flex items-center gap-3 w-full px-2.5 py-2 rounded-lg border transition text-left ${
+                    className={`py-2 px-2 rounded-lg border flex items-center justify-center truncate ${
                       isActive
                         ? "border-[color:var(--primary)] bg-primary/5"
                         : "border-border hover:bg-secondary"
                     }`}
+                    style={{ fontFamily: f.value }}
                   >
-                    <span
-                      aria-hidden
-                      className={`flex flex-col gap-[3px] shrink-0 ${
-                        isActive ? "text-[color:var(--primary)]" : "text-muted-foreground"
-                      }`}
-                    >
-                      <span className="block w-4 h-[2px] rounded-full bg-current" />
-                      <span className="block w-4 h-[2px] rounded-full bg-current" />
-                      <span className="block w-4 h-[2px] rounded-full bg-current" />
-                    </span>
-                    <span
-                      style={{ fontFamily: f.value }}
-                      className="text-[15px] leading-none truncate"
-                    >
-                      {f.label}
-                    </span>
-                    {isActive && (
-                      <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-[color:var(--primary)]">
-                        Ativo
-                      </span>
-                    )}
+                    <span className="text-[14px] leading-none truncate">{f.label}</span>
                   </button>
                 );
               })}
             </div>
           </Section>
+
 
           <Section title="Alinhamento">
             <div className="flex gap-1.5">
