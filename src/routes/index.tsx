@@ -29,6 +29,8 @@ import {
   Hash,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
+import { AccountButton } from "@/components/AccountButton";
+
 import { EditorialCalendar } from "@/components/EditorialCalendar";
 import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
 import {
