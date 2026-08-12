@@ -331,30 +331,32 @@ function Editor() {
           </button>
         </nav>
 
-        {tab === "creator" ? (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setStrategyOpen(true)}
-              className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/70"
-            >
-              <Sparkles className="w-4 h-4" /> Estratégia
-            </button>
-            <button
-              onClick={exportAll}
-              disabled={exporting}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
-            >
-              {exporting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
-            </button>
-          </div>
-        ) : (
-          <div className="w-[120px]" aria-hidden />
-        )}
+        <div className="flex items-center gap-2">
+          <AccountButton />
+          {tab === "creator" && (
+            <>
+              <button
+                onClick={() => setStrategyOpen(true)}
+                className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:bg-secondary/70"
+              >
+                <Sparkles className="w-4 h-4" /> Estratégia
+              </button>
+              <button
+                onClick={exportAll}
+                disabled={exporting}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ig-gradient text-white text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
+              >
+                {exporting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                Exportar {slides.length > 1 ? `${slides.length} slides` : "PNG"}
+              </button>
+            </>
+          )}
+        </div>
+
       </header>
 
       {/* Mobile tab switcher */}
