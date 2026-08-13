@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -25,6 +26,7 @@ async function callAI(body: unknown) {
 }
 
 export const generateCarousel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { prompt: string; slideCount: number }) => {
     if (!d?.prompt || typeof d.prompt !== "string") throw new Error("prompt obrigatório");
     const count = Math.min(Math.max(d.slideCount ?? 3, 1), 10);
@@ -87,6 +89,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
   });
 
 export const generateCaption = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { prompt: string; slides: string[] }) => {
     if (!d?.prompt && (!d?.slides || d.slides.length === 0))
       throw new Error("conteúdo obrigatório");
@@ -155,6 +158,7 @@ export const generateCaption = createServerFn({ method: "POST" })
   });
 
 export const generateImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { prompt: string }) => {
     if (!d?.prompt) throw new Error("prompt obrigatório");
     return { prompt: d.prompt.slice(0, 1500) };
@@ -176,6 +180,7 @@ export const generateImage = createServerFn({ method: "POST" })
   });
 
 export const editImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { prompt: string; imageUrl: string }) => {
     if (!d?.prompt || !d?.imageUrl) throw new Error("prompt e imageUrl obrigatórios");
     return { prompt: d.prompt.slice(0, 1500), imageUrl: d.imageUrl };
@@ -213,6 +218,7 @@ export type CalendarPost = {
 };
 
 export const generateStrategy = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { niche: string; audience: string; goal: string; startDate: string }) => {
     if (!d?.niche) throw new Error("nicho obrigatório");
     return {
