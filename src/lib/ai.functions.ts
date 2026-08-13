@@ -286,7 +286,8 @@ export const generateStrategy = createServerFn({ method: "POST" })
         {
           role: "system",
           content:
-            "Você é um estrategista de conteúdo sênior para Instagram com forte especialização em SEO social (Instagram SEO + Google Discover). Todo calendário editorial que você cria é OTIMIZADO PARA SEO do nicho informado: mapeia palavras-chave primárias e secundárias reais do nicho, intenção de busca, termos long-tail e perguntas frequentes do público, e distribui essas keywords de forma natural em títulos, ganchos, legendas, CTAs e hashtags. Escreva sempre em português brasileiro, com ganchos curtos e copys prontas para publicar.",
+            WISE_CORE +
+            "\n\n[TAREFA ATUAL — CALENDÁRIO EDITORIAL 30 DIAS]\n\nAlém do núcleo acima, otimize TODO o calendário para SEO social (Instagram SEO + Google Discover): mapeie palavras-chave primárias, secundárias e long-tail reais do nicho, intenção de busca e perguntas frequentes, e distribua essas keywords de forma natural em títulos, ganchos, legendas, CTAs e hashtags. Cada legenda (caption) deve conter pelo menos 1 Rótulo de Empatia e 1 Pergunta Calibrada; cada CTA deve usar a Busca pelo \"NÃO\" ou Inversão de Risco — nunca CTAs fracas. Escreva sempre em português brasileiro, com ganchos curtos e copys prontas para publicar.",
         },
         {
           role: "user",
