@@ -45,7 +45,7 @@ import { editImage, generateCarousel, generateCaption, generateImage } from "@/l
 type EditorTab = "text" | "style" | "image" | "copy";
 const STRATEGY_KEY = "postly:strategy-seen";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
     meta: [
       { title: "Postly — Crie posts e carrosséis com IA para Instagram" },
