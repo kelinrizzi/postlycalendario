@@ -38,8 +38,16 @@ function LoginPage() {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/", replace: true });
+    if (!loading && session) navigate({ to: "/app", replace: true });
   }, [loading, session, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
