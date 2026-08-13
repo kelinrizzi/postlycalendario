@@ -155,7 +155,8 @@ export const generateCaption = createServerFn({ method: "POST" })
         {
           role: "system",
           content:
-            "Você é um especialista em copywriting e SEO para Instagram. Escreva legendas envolventes em português brasileiro, otimizadas para SEO (use palavras-chave relevantes que as pessoas pesquisam de forma natural no texto), com um gancho forte na primeira linha, corpo escaneável com quebras de linha e emojis, e uma chamada para ação clara. As hashtags devem ser exatamente 5, relevantes ao tema e ao nicho.",
+            WISE_CORE +
+            "\n\n[TAREFA ATUAL — LEGENDA]\n\nEscreva a legenda (caption) completa em português brasileiro, pronta para publicar. Aplique pelo menos 1 Rótulo de Empatia (Labeling) e 1 Pergunta Calibrada no corpo. O CTA deve usar a Busca pelo \"NÃO\" ou Inversão de Risco — nunca CTAs fracas como \"curta e comente\". Mantenha SEO natural (palavras-chave que o público pesquisa inseridas de forma orgânica), corpo escaneável com quebras de linha e emojis moderados. Não inclua as hashtags dentro da caption.",
         },
         {
           role: "user",
