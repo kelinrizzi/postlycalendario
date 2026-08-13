@@ -47,19 +47,7 @@ const STRATEGY_KEY = "postly:strategy-seen";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
-    meta: [
-      { title: "Postly — Crie posts e carrosséis com IA para Instagram" },
-      {
-        name: "description",
-        content:
-          "Gere posts e carrosséis para Instagram com IA. Edite textos, fontes, cores e imagens em segundos.",
-      },
-      { property: "og:title", content: "Postly — Crie posts para Instagram com IA" },
-      {
-        property: "og:description",
-        content: "Carrosséis prontos em segundos. Edição completa, exportação em PNG.",
-      },
-    ],
+    meta: [{ title: "Editor — Postly" }, { name: "robots", content: "noindex" }],
   }),
   component: Editor,
 });
