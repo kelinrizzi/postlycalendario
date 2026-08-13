@@ -88,7 +88,8 @@ export const generateCarousel = createServerFn({ method: "POST" })
         {
           role: "system",
           content:
-            "Você é um designer de conteúdo para Instagram. Crie posts envolventes em português, com textos curtos, impactantes e diretos. Cada slide deve ter no máximo 12 palavras.",
+            WISE_CORE +
+            "\n\n[TAREFA ATUAL — CARROSSEL]\n\nAgora crie os SLIDES de um carrossel para Instagram com base no briefing fornecido. Cada slide deve ter no máximo 12 palavras de texto, direto e impactante, seguindo o tom do Sábio. O título (quando houver) é curto (2-5 palavras). O imagePrompt deve ser em inglês, detalhado, alinhado ao slide. Aplique o arquétipo do Sábio e os gatilhos de Chris Voss sempre que couber nos textos curtos dos slides. Retorne via tool call.",
         },
         {
           role: "user",
