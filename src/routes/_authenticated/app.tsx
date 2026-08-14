@@ -27,11 +27,13 @@ import {
   MessageSquareText,
   Check,
   Hash,
+  Frame,
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { AccountButton } from "@/components/AccountButton";
 
 import { EditorialCalendar } from "@/components/EditorialCalendar";
+import { StudioComposer } from "@/components/StudioComposer";
 import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
 import {
   FONTS,
@@ -60,7 +62,7 @@ function Editor() {
   const [generating, setGenerating] = useState(false);
   const [genImageId, setGenImageId] = useState<string | null>(null);
   const [editImagePrompt, setEditImagePrompt] = useState("");
-  const [tab, setTab] = useState<"creator" | "calendar">("creator");
+  const [tab, setTab] = useState<"creator" | "studio" | "calendar">("creator");
   const [slides, setSlides] = useState<Slide[]>([blankSlide("Bem-vindo ao Postly ✨")]);
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
@@ -310,6 +312,16 @@ function Editor() {
             <LayoutGrid className="w-3.5 h-3.5" /> Criativo
           </button>
           <button
+            onClick={() => setTab("studio")}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
+              tab === "studio"
+                ? "bg-card shadow-soft text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Frame className="w-3.5 h-3.5" /> Estúdio
+          </button>
+          <button
             onClick={() => setTab("calendar")}
             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
               tab === "calendar"
@@ -360,6 +372,14 @@ function Editor() {
           <LayoutGrid className="w-3.5 h-3.5" /> Criativo
         </button>
         <button
+          onClick={() => setTab("studio")}
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
+            tab === "studio" ? "bg-card shadow-soft" : "text-muted-foreground"
+          }`}
+        >
+          <Frame className="w-3.5 h-3.5" /> Estúdio
+        </button>
+        <button
           onClick={() => setTab("calendar")}
           className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
             tab === "calendar" ? "bg-card shadow-soft" : "text-muted-foreground"
@@ -371,6 +391,8 @@ function Editor() {
 
       {tab === "calendar" ? (
         <EditorialCalendar />
+      ) : tab === "studio" ? (
+        <StudioComposer />
       ) : (
 
 
