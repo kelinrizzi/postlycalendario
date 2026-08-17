@@ -33,7 +33,6 @@ import { SlideCanvas } from "@/components/SlideCanvas";
 import { AccountButton } from "@/components/AccountButton";
 
 import { EditorialCalendar } from "@/components/EditorialCalendar";
-import { StudioComposer } from "@/components/StudioComposer";
 import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
 import {
   FONTS,
@@ -62,7 +61,7 @@ function Editor() {
   const [generating, setGenerating] = useState(false);
   const [genImageId, setGenImageId] = useState<string | null>(null);
   const [editImagePrompt, setEditImagePrompt] = useState("");
-  const [tab, setTab] = useState<"creator" | "studio" | "calendar">("creator");
+  const [tab, setTab] = useState<"creator" | "calendar">("creator");
   const [slides, setSlides] = useState<Slide[]>([blankSlide("Bem-vindo ao Postly ✨")]);
   const [activeId, setActiveId] = useState(slides[0].id);
   const [error, setError] = useState<string | null>(null);
@@ -312,16 +311,6 @@ function Editor() {
             <LayoutGrid className="w-3.5 h-3.5" /> Criativo
           </button>
           <button
-            onClick={() => setTab("studio")}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
-              tab === "studio"
-                ? "bg-card shadow-soft text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Frame className="w-3.5 h-3.5" /> Estúdio
-          </button>
-          <button
             onClick={() => setTab("calendar")}
             className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ${
               tab === "calendar"
@@ -372,14 +361,6 @@ function Editor() {
           <LayoutGrid className="w-3.5 h-3.5" /> Criativo
         </button>
         <button
-          onClick={() => setTab("studio")}
-          className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
-            tab === "studio" ? "bg-card shadow-soft" : "text-muted-foreground"
-          }`}
-        >
-          <Frame className="w-3.5 h-3.5" /> Estúdio
-        </button>
-        <button
           onClick={() => setTab("calendar")}
           className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
             tab === "calendar" ? "bg-card shadow-soft" : "text-muted-foreground"
@@ -391,8 +372,6 @@ function Editor() {
 
       {tab === "calendar" ? (
         <EditorialCalendar />
-      ) : tab === "studio" ? (
-        <StudioComposer />
       ) : (
 
 
@@ -701,6 +680,65 @@ function Editor() {
 
           {editorTab === "style" && (
           <div className="flex flex-col gap-5">
+          <Section title="Estilo do criativo" icon={<Frame className="w-3.5 h-3.5" />}>
+            <div className="grid grid-cols-2 gap-1.5">
+              {(
+                [
+                  { v: "foto", label: "Foto" },
+                  { v: "estudio", label: "Estúdio" },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => update({ design: o.v })}
+                  className={`py-2 rounded-lg border text-xs font-semibold ${
+                    active.design === o.v
+                      ? "border-[color:var(--primary)] bg-primary/5"
+                      : "border-border hover:bg-secondary"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1.5">
+              Estúdio usa layout editorial (grade sutil, etiqueta e cantos) sem imagem de fundo.
+            </p>
+          </Section>
+
+          {active.design === "estudio" && (
+            <>
+              <Section title="Etiqueta">
+                <input
+                  type="text"
+                  value={active.label}
+                  onChange={(e) => update({ label: e.target.value })}
+                  placeholder="O DIAGNÓSTICO"
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring/50"
+                />
+              </Section>
+
+              <Section title="Cor de destaque">
+                <ColorRow
+                  value={active.accentColor}
+                  onChange={(accentColor) => update({ accentColor })}
+                />
+              </Section>
+
+              <Section title="Grade de fundo">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={active.grid}
+                    onChange={(e) => update({ grid: e.target.checked })}
+                    className="accent-[color:var(--primary)]"
+                  />
+                  <span className="text-xs text-muted-foreground">Mostrar grade sutil</span>
+                </label>
+              </Section>
+            </>
+          )}
+
           <Section title="Cor do texto">
             <ColorRow
               value={active.textColor}

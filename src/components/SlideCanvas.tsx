@@ -1,5 +1,6 @@
 import type { Slide } from "@/lib/slide-types";
 import { forwardRef } from "react";
+import { StudioCanvas } from "@/components/StudioComposer";
 
 type Props = {
   slide: Slide;
@@ -23,6 +24,28 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
   { slide, size = 1080 },
   ref,
 ) {
+  if (slide.design === "estudio") {
+    return (
+      <StudioCanvas
+        innerRef={ref}
+        size={size}
+        state={{
+          kicker: slide.showTitle ? slide.title : "",
+          headline: slide.text,
+          accentLine: "",
+          label: slide.label,
+          handle: slide.handle,
+          bgColor: slide.bgColor,
+          textColor: slide.textColor,
+          accentColor: slide.accentColor,
+          fontFamily: slide.fontFamily,
+          layout: "capa",
+          grid: slide.grid,
+        }}
+      />
+    );
+  }
+
   const justify =
     slide.vpos === "top" ? "flex-start" : slide.vpos === "bottom" ? "flex-end" : "center";
   const align =
