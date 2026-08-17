@@ -1,3 +1,5 @@
+export type SlideDesign = "foto" | "estudio";
+
 export type SlideAlign = "left" | "center" | "right";
 export type SlideVPos = "top" | "middle" | "bottom";
 
@@ -48,6 +50,11 @@ export type Slide = {
   vpos: SlideVPos;
   overlay: OverlayKind;
   handle: string;
+  /** Modo de renderização: foto (imagem + overlay) ou estúdio (layout editorial) */
+  design: SlideDesign;
+  label: string;
+  accentColor: string;
+  grid: boolean;
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -68,4 +75,8 @@ export const blankSlide = (text = "Seu texto aqui", title = "", handle = ""): Sl
   vpos: "middle",
   overlay: "dark",
   handle,
+  design: "foto",
+  label: "",
+  accentColor: "#E4762B",
+  grid: true,
 });
