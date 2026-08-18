@@ -50,8 +50,39 @@ export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
     meta: [{ title: "Editor — Postly" }, { name: "robots", content: "noindex" }],
   }),
-  component: Editor,
+  component: GuardedEditor,
 });
+
+function GuardedEditor() {
+  const { allowed, loading } = useAccess();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!allowed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-6">
+        <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 text-center shadow-soft">
+          <h1 className="text-xl font-bold">Acesso pendente de aprovação</h1>
+          <p className="text-sm text-muted-foreground mt-2">
+            Seu e-mail ainda não foi liberado pelo administrador. Assim que for aprovado, o
+            editor abre automaticamente.
+          </p>
+          <div className="mt-5 flex items-center justify-center">
+            <AccountButton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <Editor />;
+}
 
 const CANVAS_PX = 1080;
 
