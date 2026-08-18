@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { SlideCanvas } from "@/components/SlideCanvas";
 import { AccountButton } from "@/components/AccountButton";
+import { useAccess } from "@/hooks/use-access";
 
 import { EditorialCalendar } from "@/components/EditorialCalendar";
 import { StrategyModal, type StrategyAnswers } from "@/components/StrategyModal";
