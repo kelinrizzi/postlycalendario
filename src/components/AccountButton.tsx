@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 
@@ -24,6 +24,13 @@ export function AccountButton() {
 
   return (
     <div className="flex items-center gap-2">
+      <Link
+        to="/admin"
+        title="Painel administrativo"
+        className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-secondary/70"
+      >
+        <Shield className="w-3.5 h-3.5" /> Admin
+      </Link>
       <div
         title={user.email ?? undefined}
         className="w-8 h-8 rounded-full bg-ig-gradient text-white text-xs font-bold flex items-center justify-center shadow-soft"
