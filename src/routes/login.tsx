@@ -4,6 +4,7 @@ import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useSession } from "@/hooks/use-session";
+import { checkEmailAllowed } from "@/lib/access.functions";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
