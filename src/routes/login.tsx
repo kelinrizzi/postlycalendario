@@ -4,6 +4,7 @@ import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useSession } from "@/hooks/use-session";
+import { checkEmailAllowed } from "@/lib/access.functions";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -56,6 +57,13 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        const { allowed } = await checkEmailAllowed({ data: { email: email.trim() } });
+        if (!allowed) {
+          setError(
+            "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+          );
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
