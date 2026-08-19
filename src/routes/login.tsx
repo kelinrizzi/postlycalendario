@@ -57,6 +57,13 @@ function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        const { allowed } = await checkEmailAllowed({ data: { email: email.trim() } });
+        if (!allowed) {
+          setError(
+            "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+          );
+          return;
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
