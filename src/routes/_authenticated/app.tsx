@@ -174,17 +174,18 @@ function Editor() {
       setSlides(newSlides);
       setActiveId(newSlides[0].id);
 
-      // Generate images in parallel
-      const results = await Promise.allSettled(
-        newSlides.map((s) => callGenImage({ data: { prompt: s.imagePrompt } })),
-      );
-      setSlides((prev) =>
-        prev.map((slide, i) => {
-          const r = results[i];
-          if (r && r.status === "fulfilled") return { ...slide, imageUrl: r.value.imageUrl };
-          return slide;
+      // Gera as imagens de todos os slides em paralelo, aplicando cada uma assim que fica pronta
+      await Promise.allSettled(
+        newSlides.map(async (s) => {
+          try {
+            const { imageUrl } = await callGenImage({ data: { prompt: s.imagePrompt } });
+            setSlides((prev) => prev.map((sl) => (sl.id === s.id ? { ...sl, imageUrl } : sl)));
+          } catch {
+            /* mantém o slide sem imagem */
+          }
         }),
       );
+
       // Generate SEO caption with hashtags
       void makeCaption(newSlides);
     } catch (e) {
