@@ -37,9 +37,26 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const checkedEmailRef = useRef<string | null>(null);
 
+  // Sessão ativa (ex.: retorno do Google): só segue para o app se o e-mail
+  // estiver aprovado pelo admin; caso contrário, desconecta.
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/app", replace: true });
+    if (loading || !session) return;
+    const email = session.user.email ?? "";
+    if (checkedEmailRef.current === email) return;
+    checkedEmailRef.current = email;
+    void (async () => {
+      const { allowed } = await checkEmailAllowed({ data: { email } });
+      if (allowed) {
+        navigate({ to: "/app", replace: true });
+      } else {
+        await supabase.auth.signOut();
+        setError(
+          "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+        );
+      }
+    })();
   }, [loading, session, navigate]);
 
   if (loading) {
