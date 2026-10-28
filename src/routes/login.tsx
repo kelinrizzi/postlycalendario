@@ -91,6 +91,13 @@ function LoginPage() {
           setInfo("Conta criada! Confirme o e-mail que enviamos para entrar.");
         }
       } else {
+        const { allowed } = await checkEmailAllowed({ data: { email: email.trim() } });
+        if (!allowed) {
+          setError(
+            "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+          );
+          return;
+        }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
