@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -37,9 +37,26 @@ function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const checkedEmailRef = useRef<string | null>(null);
 
+  // Sessão ativa (ex.: retorno do Google): só segue para o app se o e-mail
+  // estiver aprovado pelo admin; caso contrário, desconecta.
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/app", replace: true });
+    if (loading || !session) return;
+    const email = session.user.email ?? "";
+    if (checkedEmailRef.current === email) return;
+    checkedEmailRef.current = email;
+    void (async () => {
+      const { allowed } = await checkEmailAllowed({ data: { email } });
+      if (allowed) {
+        navigate({ to: "/app", replace: true });
+      } else {
+        await supabase.auth.signOut();
+        setError(
+          "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+        );
+      }
+    })();
   }, [loading, session, navigate]);
 
   if (loading) {
@@ -74,6 +91,13 @@ function LoginPage() {
           setInfo("Conta criada! Confirme o e-mail que enviamos para entrar.");
         }
       } else {
+        const { allowed } = await checkEmailAllowed({ data: { email: email.trim() } });
+        if (!allowed) {
+          setError(
+            "Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.",
+          );
+          return;
+        }
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
@@ -96,7 +120,8 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/", replace: true });
+    // A sessão muda e o useEffect acima valida o e-mail antes de liberar o app.
+    setBusy(false);
   }
 
   return (
