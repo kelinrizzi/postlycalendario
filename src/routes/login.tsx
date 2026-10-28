@@ -120,7 +120,8 @@ function LoginPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/", replace: true });
+    // A sessão muda e o useEffect acima valida o e-mail antes de liberar o app.
+    setBusy(false);
   }
 
   return (
