@@ -311,8 +311,6 @@ export const generateStrategy = createServerFn({ method: "POST" })
                 },
                 posts: {
                   type: "array",
-                  minItems: 30,
-                  maxItems: 30,
                   items: {
                     type: "object",
                     properties: {
