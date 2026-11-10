@@ -1,4 +1,5 @@
-import { describe, expect, test } from "bun:test";
+import { describe, test } from "node:test";
+import { strict as assert } from "node:assert";
 import { calendarSchema } from "./calendar-schema";
 
 const content = { title: "Bolos veganos", hook: "Como preparar bolos veganos?", caption: "Receita de bolo vegano artesanal", cta: "Seria uma má ideia experimentar?", photoIdea: "Fatia de bolo vegano em close na bancada da cozinha", bestTime: "19h" };
@@ -10,25 +11,25 @@ function validCalendar() {
 }
 describe("Calendário diário", () => {
   test("exige exatamente 30 conteúdos de feed", () => {
-    expect(calendarSchema.safeParse(validCalendar()).success).toBe(true);
+    assert.equal(calendarSchema.safeParse(validCalendar()).success, true);
     const calendar = validCalendar(); calendar.posts.pop();
-    expect(calendarSchema.safeParse(calendar).success).toBe(false);
+    assert.equal(calendarSchema.safeParse(calendar).success, false);
   });
   test("exige um story junto a cada conteúdo, sem substituir o feed", () => {
     const calendar = validCalendar();
-    expect(calendarSchema.parse(calendar).posts.filter(post => post.story).length).toBe(30);
-    expect(calendarSchema.safeParse({ ...calendar, posts: calendar.posts.map(({ story, ...post }) => post) }).success).toBe(false);
+    assert.equal(calendarSchema.parse(calendar).posts.filter(post => post.story).length, 30);
+    assert.equal(calendarSchema.safeParse({ ...calendar, posts: calendar.posts.map(({ story, ...post }) => post) }).success, false);
     calendar.posts[0].format = "Story";
-    expect(calendarSchema.safeParse(calendar).success).toBe(false);
+    assert.equal(calendarSchema.safeParse(calendar).success, false);
   });
   test("exige sugestão de foto no feed e no story", () => {
     const calendar = validCalendar(); calendar.posts[0].photoIdea = "";
-    expect(calendarSchema.safeParse(calendar).success).toBe(false);
+    assert.equal(calendarSchema.safeParse(calendar).success, false);
     calendar.posts[0].photoIdea = content.photoIdea; calendar.posts[0].story.photoIdea = "";
-    expect(calendarSchema.safeParse(calendar).success).toBe(false);
+    assert.equal(calendarSchema.safeParse(calendar).success, false);
   });
   test("mantém os dias e datas consecutivos", () => {
     const calendar = validCalendar(); calendar.posts[1].date = calendar.posts[0].date;
-    expect(calendarSchema.safeParse(calendar).success).toBe(false);
+    assert.equal(calendarSchema.safeParse(calendar).success, false);
   });
 });
