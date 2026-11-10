@@ -1,3 +1,5 @@
+import type { TextOffsets } from "@/components/MovableText";
+
 export type SlideDesign = "foto" | "estudio";
 
 export type SlideAlign = "left" | "center" | "right";
@@ -55,6 +57,7 @@ export type Slide = {
   label: string;
   accentColor: string;
   grid: boolean;
+  textOffsets?: TextOffsets;
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
