@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireApprovedAccess } from "@/lib/access-middleware";
+import { calendarSchema, type CalendarStory } from "@/lib/calendar-schema";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -68,7 +69,7 @@ async function callAI(body: unknown) {
 }
 
 export const generateCarousel = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedAccess])
   .inputValidator((d: { prompt: string; slideCount: number }) => {
     if (!d?.prompt || typeof d.prompt !== "string") throw new Error("prompt obrigatório");
     const count = Math.min(Math.max(d.slideCount ?? 3, 1), 10);
@@ -132,7 +133,7 @@ export const generateCarousel = createServerFn({ method: "POST" })
   });
 
 export const generateCaption = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedAccess])
   .inputValidator((d: { prompt: string; slides: string[] }) => {
     if (!d?.prompt && (!d?.slides || d.slides.length === 0))
       throw new Error("conteúdo obrigatório");
@@ -202,7 +203,7 @@ export const generateCaption = createServerFn({ method: "POST" })
   });
 
 export const generateImage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedAccess])
   .inputValidator((d: { prompt: string }) => {
     if (!d?.prompt) throw new Error("prompt obrigatório");
     return { prompt: d.prompt.slice(0, 1500) };
@@ -224,7 +225,7 @@ export const generateImage = createServerFn({ method: "POST" })
   });
 
 export const editImage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedAccess])
   .inputValidator((d: { prompt: string; imageUrl: string }) => {
     if (!d?.prompt || !d?.imageUrl) throw new Error("prompt e imageUrl obrigatórios");
     return { prompt: d.prompt.slice(0, 1500), imageUrl: d.imageUrl };
@@ -259,10 +260,12 @@ export type CalendarPost = {
   cta: string;
   hashtags: string[];
   bestTime: string;
+  photoIdea?: string;
+  story?: CalendarStory; // Optional only for calendars saved before daily stories were introduced.
 };
 
 export const generateStrategy = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireApprovedAccess])
   .inputValidator((d: { niche: string; audience: string; goal: string; startDate: string }) => {
     if (!d?.niche) throw new Error("nicho obrigatório");
     return {
@@ -284,7 +287,7 @@ export const generateStrategy = createServerFn({ method: "POST" })
         },
         {
           role: "user",
-          content: `Crie um calendário editorial de 30 dias começando em ${data.startDate}, TOTALMENTE OTIMIZADO PARA SEO do nicho abaixo.\n\nNicho/Marca: ${data.niche}\nPúblico-alvo: ${data.audience || "não especificado"}\nObjetivo principal: ${data.goal || "crescimento e engajamento"}\n\nSEO obrigatório em cada post:\n- Descubra e utilize palavras-chave reais que o público desse nicho pesquisa no Instagram e no Google\n- title: inclua a palavra-chave primária do post no início\n- hook: use linguagem de busca (perguntas, "como", "melhor", "passo a passo", números)\n- caption: primeiras 125 caracteres com keyword primária + 1 secundária (aparece no preview do feed); use sinônimos e termos semanticamente relacionados (LSI) ao longo do texto; escaneável, com quebras\n- alt/descrição do tema deve ser descritiva do nicho (não genérica)\n- hashtags: 5 a 10, misturando 1 broad (alto volume), 2-3 nicho (médio volume) e 2-3 long-tail (baixa concorrência) — todas relevantes ao nicho\n- cta: verbo de ação + benefício claro\n- No campo strategy, cite explicitamente as 5-8 palavras-chave principais do nicho que guiaram o calendário\n\nRegras de mix:\n- Distribua os formatos: ~40% Reels, ~30% Carrossel, ~20% Post, ~10% Story\n- Use pilares variados ao longo da semana (educativo, inspiracional, bastidores, venda, prova social, entretenimento) — cada pilar deve reforçar keywords do nicho\n- Cada gancho deve ter no máximo 15 palavras\n- bestTime: sugira horário (ex: "19h", "12h")\n- date: comece em ${data.startDate}, incremente 1 dia (formato YYYY-MM-DD)\n\nRetorne via tool call.`,
+          content: `Crie um calendário editorial de 30 dias começando em ${data.startDate}, TOTALMENTE OTIMIZADO PARA SEO do nicho abaixo.\n\nNicho/Marca: ${data.niche}\nPúblico-alvo: ${data.audience || "não especificado"}\nObjetivo principal: ${data.goal || "crescimento e engajamento"}\n\nSEO obrigatório em cada post:\n- Descubra e utilize palavras-chave reais que o público desse nicho pesquisa no Instagram e no Google\n- title: inclua a palavra-chave primária do post no início\n- hook: use linguagem de busca (perguntas, "como", "melhor", "passo a passo", números)\n- caption: primeiras 125 caracteres com keyword primária + 1 secundária (aparece no preview do feed); use sinônimos e termos semanticamente relacionados (LSI) ao longo do texto; escaneável, com quebras\n- alt/descrição do tema deve ser descritiva do nicho (não genérica)\n- hashtags: 5 a 10, misturando 1 broad (alto volume), 2-3 nicho (médio volume) e 2-3 long-tail (baixa concorrência) — todas relevantes ao nicho\n- cta: verbo de ação + benefício claro\n- No campo strategy, cite explicitamente as 5-8 palavras-chave principais do nicho que guiaram o calendário\n\nRegras de mix:\n- Gere exatamente 30 dias. CADA dia contém 1 conteúdo de feed (Reels, Carrossel ou Post) E 1 Story complementar, nunca substitua o conteúdo de feed por Story. Distribua o feed: ~40% Reels, ~35% Carrossel, ~25% Post.\n- photoIdea: sugira uma foto concreta e específica para cada conteúdo, descrevendo assunto, enquadramento e cenário; para Reels, descreva também a cena a filmar.\n- story: crie título, gancho, texto pronto para publicar (caption), CTA, horário e photoIdea específicos para o Story daquele dia, alinhados ao tema e SEO do nicho\n- Use pilares variados ao longo da semana (educativo, inspiracional, bastidores, venda, prova social, entretenimento) — cada pilar deve reforçar keywords do nicho\n- Cada gancho deve ter no máximo 15 palavras\n- bestTime: sugira horário (ex: "19h", "12h")\n- date: comece em ${data.startDate}, incremente 1 dia (formato YYYY-MM-DD)\n\nRetorne via tool call.`,
         },
       ],
       tools: [
@@ -292,7 +295,7 @@ export const generateStrategy = createServerFn({ method: "POST" })
           type: "function",
           function: {
             name: "create_calendar",
-            description: "Retorna calendário editorial de 30 dias otimizado para SEO",
+            description: "Retorna 30 dias com um conteúdo de feed e um story complementar por dia, com ideias de fotos",
             parameters: {
               type: "object",
               properties: {
@@ -313,7 +316,7 @@ export const generateStrategy = createServerFn({ method: "POST" })
                     properties: {
                       day: { type: "number" },
                       date: { type: "string", description: "YYYY-MM-DD" },
-                      format: { type: "string", enum: ["Reels", "Carrossel", "Post", "Story"] },
+                      format: { type: "string", enum: ["Reels", "Carrossel", "Post"] },
                       pillar: { type: "string" },
                       title: {
                         type: "string",
@@ -336,8 +339,21 @@ export const generateStrategy = createServerFn({ method: "POST" })
                           "5-10 hashtags: 1 broad + 2-3 nicho + 2-3 long-tail, todas relevantes ao nicho",
                       },
                       bestTime: { type: "string" },
+                      photoIdea: { type: "string", description: "Foto ou cena concreta para este conteúdo: assunto, enquadramento e cenário" },
+                      story: {
+                        type: "object",
+                        properties: {
+                          title: { type: "string" },
+                          hook: { type: "string" },
+                          caption: { type: "string", description: "Texto curto pronto para publicar no Story, com SEO do nicho" },
+                          cta: { type: "string" },
+                          bestTime: { type: "string" },
+                          photoIdea: { type: "string", description: "Foto específica para o Story vertical, com assunto, cenário e enquadramento" },
+                        },
+                        required: ["title", "hook", "caption", "cta", "bestTime", "photoIdea"],
+                      },
                     },
-                    required: ["day", "date", "format", "pillar", "title", "hook", "caption", "cta", "hashtags", "bestTime"],
+                    required: ["day", "date", "format", "pillar", "title", "hook", "caption", "cta", "hashtags", "bestTime", "photoIdea", "story"],
                   },
                 },
               },
@@ -351,5 +367,9 @@ export const generateStrategy = createServerFn({ method: "POST" })
     const call = json.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("Resposta da IA inválida");
     const args = JSON.parse(call.function.arguments);
-    return args as { strategy: string; pillars: string[]; posts: CalendarPost[] };
+    const result = calendarSchema.safeParse(args);
+    if (!result.success || result.data.posts[0]?.date !== data.startDate) {
+      throw new Error("A IA retornou um calendário incompleto. Tente novamente; seu calendário salvo foi mantido.");
+    }
+    return result.data;
   });

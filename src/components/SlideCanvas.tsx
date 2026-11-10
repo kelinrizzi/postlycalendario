@@ -1,10 +1,12 @@
 import type { Slide } from "@/lib/slide-types";
 import { forwardRef } from "react";
 import { StudioCanvas } from "@/components/StudioComposer";
+import { MovableText, type TextElement, type TextOffset } from "@/components/MovableText";
 
 type Props = {
   slide: Slide;
   size?: number;
+  onMoveText?: (element: TextElement, offset: TextOffset) => void;
 };
 
 const overlayBg = (kind: Slide["overlay"]) => {
@@ -21,7 +23,7 @@ const overlayBg = (kind: Slide["overlay"]) => {
 };
 
 export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanvas(
-  { slide, size = 1080 },
+  { slide, size = 1080, onMoveText },
   ref,
 ) {
   if (slide.design === "estudio") {
@@ -29,6 +31,8 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
       <StudioCanvas
         innerRef={ref}
         size={size}
+        textOffsets={slide.textOffsets}
+        onMoveText={onMoveText}
         state={{
           kicker: slide.showTitle ? slide.title : "",
           headline: slide.text,
@@ -55,6 +59,7 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
   return (
     <div
       ref={ref}
+      data-slide-canvas
       style={{
         width: size,
         height: size,
@@ -98,7 +103,7 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
         }}
       >
         {slide.showTitle && slide.title.trim() && (
-          <div
+          <MovableText offset={slide.textOffsets?.title} onMove={onMoveText ? (offset) => onMoveText("title", offset) : undefined} data-text-element="title"
             style={{
               color: slide.textColor,
               fontSize: slide.titleSize,
@@ -114,9 +119,9 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
             }}
           >
             {slide.title}
-          </div>
+          </MovableText>
         )}
-        <div
+        <MovableText offset={slide.textOffsets?.text} onMove={onMoveText ? (offset) => onMoveText("text", offset) : undefined} data-text-element="text"
           style={{
             color: slide.textColor,
             fontSize: slide.fontSize,
@@ -132,10 +137,10 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
         >
           {slide.text}
 
-        </div>
+        </MovableText>
       </div>
       {slide.handle.trim() && (
-        <div
+        <MovableText offset={slide.textOffsets?.handle} onMove={onMoveText ? (offset) => onMoveText("handle", offset) : undefined} data-text-element="handle"
           style={{
             position: "absolute",
             bottom: size * 0.05,
@@ -150,7 +155,7 @@ export const SlideCanvas = forwardRef<HTMLDivElement, Props>(function SlideCanva
           }}
         >
           @{slide.handle.replace(/^@/, "")}
-        </div>
+        </MovableText>
       )}
     </div>
   );
