@@ -49,7 +49,15 @@ const STRATEGY_KEY = "postly:strategy-seen";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({
-    meta: [{ title: "Editor — Postly" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Editor — Postly" },
+      { name: "description", content: "Crie e edite posts, carrosséis e um calendário editorial de 30 dias no Postly." },
+      { property: "og:title", content: "Editor — Postly" },
+      { property: "og:description", content: "Posts, carrosséis, stories diários e estratégias de conteúdo com IA." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: GuardedEditor,
 });
