@@ -13,8 +13,10 @@ import {
   Target,
   Save,
   RefreshCw,
+  Camera,
 } from "lucide-react";
 import { generateStrategy, type CalendarPost } from "@/lib/ai.functions";
+import { Button } from "@/components/ui/button";
 
 const FORMAT_STYLES: Record<CalendarPost["format"], string> = {
   Reels: "bg-pink-100 text-pink-700 border-pink-200",
@@ -138,8 +140,8 @@ export function EditorialCalendar() {
 
   const exportCSV = () => {
     if (!posts.length) return;
-    const header = ["Dia", "Data", "Formato", "Pilar", "Tema", "Gancho", "Legenda", "CTA", "Hashtags", "Horário"];
-    const rows = posts.map((p) => [
+    const header = ["Dia", "Data", "Formato", "Pilar", "Tema", "Gancho", "Legenda", "CTA", "Hashtags", "Horário", "Ideia de foto"];
+    const rows = posts.flatMap((p) => [[
       p.day,
       p.date,
       p.format,
@@ -150,7 +152,8 @@ export function EditorialCalendar() {
       p.cta,
       p.hashtags.join(" "),
       p.bestTime,
-    ]);
+      p.photoIdea ?? "",
+    ], ...(p.story ? [[p.day, p.date, "Story", p.pillar, p.story.title, p.story.hook, p.story.caption, p.story.cta, "", p.story.bestTime, p.story.photoIdea]] : [])]);
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -334,7 +337,8 @@ export function EditorialCalendar() {
             <h3 className="font-bold text-lg">Seu calendário editorial</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
               Preencha as informações da sua marca e a IA criará uma estratégia
-              completa de 30 dias com formatos, ganchos, legendas e hashtags.
+              de 30 dias com um story e um post, carrossel ou reels por dia,
+              incluindo legendas e sugestões de fotos.
             </p>
           </div>
         )}
@@ -383,7 +387,7 @@ export function EditorialCalendar() {
                       : "border-border bg-card hover:bg-secondary"
                   }`}
                 >
-                  {f === "all" ? `Todos (${posts.length})` : f}
+                  {f === "all" ? `Feed (${posts.length}) · Stories (${posts.filter((p) => p.story).length})` : f === "Story" ? "Stories" : f}
                 </button>
               ))}
             </div>
@@ -405,14 +409,14 @@ export function EditorialCalendar() {
                   <div key={`blank-${i}`} className="aspect-square" />
                 ))}
                 {posts.map((p) => {
-                  const dim =
+                  const dim = formatFilter === "Story" ? !p.story :
                     formatFilter !== "all" && p.format !== formatFilter;
                   const isSel = selected?.day === p.day;
                   return (
                     <button
                       key={p.day}
                       onClick={() => setSelected(p)}
-                      className={`aspect-square rounded-lg border p-1.5 text-left flex flex-col justify-between transition hover:shadow-soft ${
+                       className={`aspect-square min-h-20 rounded-lg border p-1 text-left flex flex-col justify-between transition hover:shadow-soft ${
                         isSel
                           ? "border-[color:var(--primary)] ring-2 ring-primary/30"
                           : "border-border"
@@ -428,6 +432,7 @@ export function EditorialCalendar() {
                       >
                         {p.format}
                       </span>
+                      {p.story && <span className="text-[9px] text-primary font-semibold text-center">+ Story</span>}
                     </button>
                   );
                 })}
@@ -474,6 +479,10 @@ export function EditorialCalendar() {
                 </div>
 
                 <div className="space-y-3">
+                  {selected.photoIdea && <div>
+                    <p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1 flex items-center gap-1"><Camera className="w-3 h-3" /> Ideia de foto / cena</p>
+                    <p className="text-sm">{selected.photoIdea}</p>
+                  </div>}
                   <div>
                     <p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1">
                       Gancho
@@ -508,6 +517,22 @@ export function EditorialCalendar() {
                     </div>
                   </div>
                 </div>
+                {selected.story ? <section className="mt-5 pt-5 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <h4 className="font-bold text-sm">Story do dia {selected.day}</h4>
+                    <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{selected.story.bestTime}</span>
+                    <Button variant="outline" size="sm" onClick={async () => {
+                      await navigator.clipboard.writeText(`${selected.story?.hook}\n\n${selected.story?.caption}\n\n${selected.story?.cta}`);
+                      setCopiedId(`story-${selected.day}`);
+                      setTimeout(() => setCopiedId(null), 1500);
+                    }}>{copiedId === `story-${selected.day}` ? <Check /> : <Copy />}Copiar story</Button>
+                  </div>
+                  <h5 className="font-semibold">{selected.story.title}</h5>
+                  <div><p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1">Gancho</p><p className="text-sm italic">{selected.story.hook}</p></div>
+                  <div><p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1">Texto do story</p><p className="text-sm whitespace-pre-wrap">{selected.story.caption}</p></div>
+                  <div><p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1">CTA</p><p className="text-sm">{selected.story.cta}</p></div>
+                  <div><p className="text-[11px] font-semibold uppercase text-muted-foreground mb-1 flex items-center gap-1"><Camera className="w-3 h-3" />Ideia de foto para o story</p><p className="text-sm">{selected.story.photoIdea}</p></div>
+                </section> : <p className="mt-4 text-xs text-muted-foreground">Este calendário anterior não contém stories. Eles serão incluídos ao gerar um novo calendário.</p>}
               </div>
             )}
 
@@ -515,7 +540,7 @@ export function EditorialCalendar() {
             <div className="bg-card rounded-2xl shadow-card p-4">
               <h3 className="font-bold text-sm mb-3 px-1">Próximos posts</h3>
               <div className="space-y-1.5">
-                {filtered.slice(0, 10).map((p) => (
+                  {(formatFilter === "Story" ? posts.filter((p) => p.story) : filtered).slice(0, 10).map((p) => (
                   <button
                     key={p.day}
                     onClick={() => setSelected(p)}
@@ -534,13 +559,13 @@ export function EditorialCalendar() {
                         <span
                           className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${FORMAT_STYLES[p.format]}`}
                         >
-                          {p.format}
+                          {formatFilter === "Story" ? "Story" : p.format}
                         </span>
                         <span className="text-[11px] text-muted-foreground">
                           {p.pillar} · {p.bestTime}
                         </span>
                       </div>
-                      <p className="text-sm font-medium truncate mt-0.5">{p.title}</p>
+                      <p className="text-sm font-medium truncate mt-0.5">{formatFilter === "Story" ? p.story?.title : p.title}</p>
                     </div>
                   </button>
                 ))}
