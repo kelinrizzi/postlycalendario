@@ -496,7 +496,7 @@ function Editor() {
 
         {/* CENTER — preview */}
         <main className="flex flex-col items-center justify-start gap-4">
-          <PreviewFrame slide={active} loading={genImageId === active.id} />
+          <PreviewFrame slide={active} loading={genImageId === active.id} onUpdate={update} />
 
 
           {/* Carousel strip */}
@@ -1015,7 +1015,7 @@ function ColorRow({ value, onChange }: { value: string; onChange: (v: string) =>
   );
 }
 
-function PreviewFrame({ slide, loading }: { slide: Slide; loading: boolean }) {
+function PreviewFrame({ slide, loading, onUpdate }: { slide: Slide; loading: boolean; onUpdate: (patch: Partial<Slide>) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
 
@@ -1050,7 +1050,7 @@ function PreviewFrame({ slide, loading }: { slide: Slide; loading: boolean }) {
           left: 0,
         }}
       >
-        <SlideCanvas slide={slide} size={CANVAS_PX} />
+        <SlideCanvas slide={slide} size={CANVAS_PX} onMoveText={(element, offset) => onUpdate({ textOffsets: { ...slide.textOffsets, [element]: offset } })} />
       </div>
       {loading && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-medium z-10">
