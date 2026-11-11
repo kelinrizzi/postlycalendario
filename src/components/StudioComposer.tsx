@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { Download, Loader2, Grid3X3, Type as TypeIcon, Palette } from "lucide-react";
+import { MovableText, type TextOffsets, type TextElement, type TextOffset } from "@/components/MovableText";
 
 const CANVAS_PX = 1080;
 
@@ -55,10 +56,14 @@ export function StudioCanvas({
   state,
   size = CANVAS_PX,
   innerRef,
+  textOffsets,
+  onMoveText,
 }: {
   state: StudioState;
   size?: number;
   innerRef?: React.Ref<HTMLDivElement>;
+  textOffsets?: TextOffsets;
+  onMoveText?: (element: TextElement, offset: TextOffset) => void;
 }) {
   const u = (n: number) => size * n;
   const gridLine = `color-mix(in oklab, ${state.textColor} 7%, transparent)`;
@@ -71,6 +76,7 @@ export function StudioCanvas({
   return (
     <div
       ref={innerRef}
+      data-slide-canvas
       style={{
         width: size,
         height: size,
@@ -151,7 +157,7 @@ export function StudioCanvas({
 
       {/* top label */}
       {state.label.trim() && (
-        <div
+        <MovableText offset={textOffsets?.label} onMove={onMoveText ? (offset) => onMoveText("label", offset) : undefined} data-text-element="label"
           style={{
             position: "absolute",
             top: u(0.052),
@@ -165,7 +171,7 @@ export function StudioCanvas({
           }}
         >
           {state.label}
-        </div>
+        </MovableText>
       )}
 
       {/* top-right handle mark */}
@@ -201,7 +207,7 @@ export function StudioCanvas({
         }}
       >
         {state.kicker.trim() && (
-          <div
+          <MovableText offset={textOffsets?.title} onMove={onMoveText ? (offset) => onMoveText("title", offset) : undefined} data-text-element="title"
             style={{
               fontFamily: '"Inter", sans-serif',
               fontSize: isCorpo ? u(0.024) : u(0.026),
@@ -212,11 +218,11 @@ export function StudioCanvas({
             }}
           >
             {state.kicker}
-          </div>
+          </MovableText>
         )}
 
         {state.headline.trim() && (
-          <div
+          <MovableText offset={textOffsets?.text} onMove={onMoveText ? (offset) => onMoveText("text", offset) : undefined} data-text-element="text"
             style={{
               fontSize: headlineSize,
               lineHeight: 1.12,
@@ -227,7 +233,7 @@ export function StudioCanvas({
             }}
           >
             {state.headline}
-          </div>
+          </MovableText>
         )}
 
         {state.accentLine.trim() && (
@@ -248,7 +254,7 @@ export function StudioCanvas({
 
       {/* footer handle with rules */}
       {state.handle.trim() && (
-        <div
+        <MovableText offset={textOffsets?.handle} onMove={onMoveText ? (offset) => onMoveText("handle", offset) : undefined} data-text-element="handle"
           style={{
             position: "absolute",
             bottom: u(0.075),
@@ -274,7 +280,7 @@ export function StudioCanvas({
             @{state.handle.replace(/^@/, "")}
           </div>
           <div style={{ width: u(0.06), height: 1, background: state.textColor, opacity: 0.25 }} />
-        </div>
+        </MovableText>
       )}
     </div>
   );
