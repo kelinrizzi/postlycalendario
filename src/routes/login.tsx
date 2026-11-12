@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mail, Lock, Sparkles } from "lucide-react";
+import { Loader2, Mail, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useServerFn } from "@tanstack/react-start";
 import { useSession } from "@/hooks/use-session";
-import { checkEmailAllowed, checkLoginStatus } from "@/lib/access.functions";
+import { checkEmailAllowed } from "@/lib/access.functions";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -32,12 +32,9 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const checkAllowed = useServerFn(checkEmailAllowed);
-  const checkStatus = useServerFn(checkLoginStatus);
   const { session, loading } = useSession();
-  const [mode, setMode] = useState<"email" | "signin" | "signup">("email");
+  const [mode, setMode] = useState<"email" | "signin">("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -77,35 +74,19 @@ function LoginPage() {
     setInfo(null);
     setBusy(true);
     try {
-      if (mode === "email") {
-        const { allowed, hasPassword } = await checkStatus({ data: { email: email.trim() } });
-        if (!allowed) {
-          setError("Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.");
-          return;
-        }
-        setMode(hasPassword ? "signin" : "signup");
-        if (!hasPassword) setInfo("E-mail liberado! Crie sua senha para o primeiro acesso.");
+      const clean = email.trim().toLowerCase();
+      const { allowed } = await checkAllowed({ data: { email: clean } });
+      if (!allowed) {
+        setError("Este e-mail não está autorizado. Peça ao administrador para liberar seu acesso.");
         return;
       }
-      if (mode === "signup") {
-        if (password !== confirm) {
-          setError("As senhas não coincidem.");
-          return;
-        }
-        const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: { emailRedirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        if (!data.session) {
-          const { error: e2 } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-          if (e2) setInfo("Senha criada! Confirme o e-mail que enviamos para entrar.");
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) throw new Error("Senha incorreta.");
-      }
+      const { error } = await supabase.auth.signInWithOtp({
+        email: clean,
+        options: { emailRedirectTo: `${window.location.origin}/login`, shouldCreateUser: true },
+      });
+      if (error) throw error;
+      setMode("signin");
+      setInfo("Enviamos um link de acesso para o seu e-mail. Abra o e-mail e clique no link para entrar.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível continuar.");
     } finally {
@@ -124,7 +105,7 @@ function LoginPage() {
             <span className="text-ig-gradient">Postly</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {mode === "signup" ? "Crie sua senha de acesso" : "Entre com seu e-mail autorizado"}
+            Entre com seu e-mail autorizado
           </p>
         </div>
 
@@ -146,46 +127,6 @@ function LoginPage() {
               </div>
             </label>
 
-            {mode !== "email" && (
-              <>
-            <label className="block">
-              <span className="text-xs font-semibold text-muted-foreground">Senha</span>
-              <div className="mt-1 flex items-center gap-2 rounded-xl border border-border bg-background px-3">
-                <Lock className="w-4 h-4 text-muted-foreground" />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="flex-1 bg-transparent py-2.5 text-sm outline-none"
-                />
-              </div>
-            </label>
-
-              </>
-            )}
-            {mode === "signup" && (
-              <>
-            <label className="block">
-              <span className="text-xs font-semibold text-muted-foreground">Confirmar senha</span>
-              <div className="mt-1 flex items-center gap-2 rounded-xl border border-border bg-background px-3">
-                <Lock className="w-4 h-4 text-muted-foreground" />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  placeholder="••••••••"
-                  className="flex-1 bg-transparent py-2.5 text-sm outline-none"
-                />
-              </div>
-            </label>
-
-              </>
-            )}
             {error && <p className="text-xs text-destructive">{error}</p>}
             {info && <p className="text-xs text-muted-foreground">{info}</p>}
 
@@ -195,7 +136,7 @@ function LoginPage() {
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ig-gradient text-primary-foreground text-sm font-semibold shadow-soft hover:opacity-95 disabled:opacity-60"
             >
               {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-              {mode === "email" ? "Continuar" : mode === "signin" ? "Entrar" : "Criar senha e entrar"}
+              {mode === "email" ? "Receber link de acesso" : "Reenviar link"}
             </Button>
           </form>
 
@@ -203,7 +144,7 @@ function LoginPage() {
             <p className="mt-4 text-center text-xs text-muted-foreground">
               <button
                 type="button"
-                onClick={() => { setMode("email"); setPassword(""); setConfirm(""); setError(null); setInfo(null); }}
+                onClick={() => { setMode("email"); setError(null); setInfo(null); }}
                 className="font-semibold text-foreground hover:underline"
               >
                 Usar outro e-mail
