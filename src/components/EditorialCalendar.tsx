@@ -16,6 +16,7 @@ import {
   Camera,
 } from "lucide-react";
 import { generateStrategy, type CalendarPost } from "@/lib/ai.functions";
+import { consumeQuota, getQuotaBalance, type QuotaBalance } from "@/lib/quota.functions";
 import { Button } from "@/components/ui/button";
 
 const FORMAT_STYLES: Record<CalendarPost["format"], string> = {
@@ -71,6 +72,15 @@ export function EditorialCalendar() {
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const call = useServerFn(generateStrategy);
+  const callConsumeQuota = useServerFn(consumeQuota);
+  const callGetQuota = useServerFn(getQuotaBalance);
+  const [quota, setQuota] = useState<QuotaBalance | null>(null);
+
+  useEffect(() => {
+    void callGetQuota()
+      .then(setQuota)
+      .catch(() => {});
+  }, [callGetQuota]);
 
   const persist = (data: Partial<PersistedCalendar> = {}) => {
     if (typeof window === "undefined") return;
@@ -114,6 +124,12 @@ export function EditorialCalendar() {
     setLoading(true);
     setError(null);
     try {
+      const q = await callConsumeQuota({ data: { quotaType: "calendar" } });
+      setQuota(q);
+      if (!q.allowed) {
+        setError(q.reason ?? "Limite de calendários atingido neste ciclo de 30 dias.");
+        return;
+      }
       const res = await call({ data: { niche, audience, goal, startDate } });
       setStrategy(res.strategy);
       setPillars(res.pillars);
@@ -294,6 +310,13 @@ export function EditorialCalendar() {
           <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
             {error}
           </div>
+        )}
+        {quota && (
+          <p className="text-[11px] text-muted-foreground text-center">
+            Saldo do ciclo (30 dias): {Math.max(0, quota.calendar_limit - quota.calendar_used)} de{" "}
+            {quota.calendar_limit} calendários · {Math.max(0, quota.content_limit - quota.content_used)} de{" "}
+            {quota.content_limit} conteúdos
+          </p>
         )}
 
         {posts.length > 0 && (

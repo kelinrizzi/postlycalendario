@@ -43,6 +43,7 @@ import {
   type Slide,
 } from "@/lib/slide-types";
 import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
+import { consumeQuota, getQuotaBalance, type QuotaBalance } from "@/lib/quota.functions";
 
 type EditorTab = "text" | "style" | "image" | "copy";
 const STRATEGY_KEY = "postly:strategy-seen";
@@ -126,6 +127,15 @@ function Editor() {
   const callGenImage = useServerFn(generateImage);
   const callEditImage = useServerFn(editImage);
   const callGenCaption = useServerFn(generateCaption);
+  const callConsumeQuota = useServerFn(consumeQuota);
+  const callGetQuota = useServerFn(getQuotaBalance);
+  const [quota, setQuota] = useState<QuotaBalance | null>(null);
+
+  useEffect(() => {
+    void callGetQuota()
+      .then(setQuota)
+      .catch(() => {});
+  }, [callGetQuota]);
 
   const makeCaption = useCallback(
     async (slidesForCaption: Slide[]) => {
@@ -171,6 +181,12 @@ function Editor() {
     setGenerating(true);
     setError(null);
     try {
+      const q = await callConsumeQuota({ data: { quotaType: "content" } });
+      setQuota(q);
+      if (!q.allowed) {
+        setError(q.reason ?? "Limite de criações atingido neste ciclo de 30 dias.");
+        return;
+      }
       const { slides: aiSlides } = await callGenerate({
         data: { prompt: usePrompt, slideCount },
       });
@@ -215,6 +231,12 @@ function Editor() {
     setGenImageId(active.id);
     setError(null);
     try {
+      const q = await callConsumeQuota({ data: { quotaType: "content" } });
+      setQuota(q);
+      if (!q.allowed) {
+        setError(q.reason ?? "Limite de criações atingido neste ciclo de 30 dias.");
+        return;
+      }
       const promptToUse = editImagePrompt.trim() || active.imagePrompt || active.text;
       const { imageUrl } = await callGenImage({ data: { prompt: promptToUse } });
       setSlides((prev) =>
@@ -233,6 +255,12 @@ function Editor() {
     setGenImageId(active.id);
     setError(null);
     try {
+      const q = await callConsumeQuota({ data: { quotaType: "content" } });
+      setQuota(q);
+      if (!q.allowed) {
+        setError(q.reason ?? "Limite de criações atingido neste ciclo de 30 dias.");
+        return;
+      }
       const { imageUrl } = await callEditImage({
         data: { prompt: editImagePrompt, imageUrl: active.imageUrl },
       });
@@ -463,6 +491,13 @@ function Editor() {
             <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
               {error}
             </div>
+          )}
+          {quota && (
+            <p className="text-[11px] text-muted-foreground text-center">
+              Saldo do ciclo (30 dias): {Math.max(0, quota.content_limit - quota.content_used)} de{" "}
+              {quota.content_limit} conteúdos · {Math.max(0, quota.calendar_limit - quota.calendar_used)} de{" "}
+              {quota.calendar_limit} calendários
+            </p>
           )}
 
           <div className="border-t border-border pt-4">

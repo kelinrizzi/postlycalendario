@@ -71,6 +71,27 @@ export type Database = {
         }
         Relationships: []
       }
+      quota_usage: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          quota_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          quota_type: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          quota_type?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -97,6 +118,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_user_quota: {
+        Args: { _email: string; _quota_type: string }
+        Returns: Json
+      }
+      get_user_quota: { Args: { _email: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
