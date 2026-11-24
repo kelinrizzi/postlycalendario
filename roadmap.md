@@ -5,6 +5,6 @@
 - [x] Permitir arrastar os textos do criativo com o mouse.
 - [x] Login: opção "Já tenho conta" com botão Entrar (e-mail + senha), mantendo link de acesso.
 - [x] Criar RPC `consume_user_quota` + tabela de uso (ciclo de 30 dias; limites 40 conteúdos / 2 calendários).
-- [ ] Bloquear geração de post/carrossel/imagem sem saldo (content) e exibir `reason`.
-- [ ] Bloquear geração de calendário sem saldo (calendar) e exibir `reason`.
-- [ ] Exibir saldo restante (content_used/limit, calendar_used/limit) na interface.
+- [x] Bloquear geração de post/carrossel/imagem sem saldo (content) e exibir `reason`.
+- [x] Bloquear geração de calendário sem saldo (calendar) e exibir `reason`.
+- [x] Exibir saldo restante (content_used/limit, calendar_used/limit) na interface.
