@@ -203,26 +203,58 @@ export const generateCaption = createServerFn({ method: "POST" })
     return { caption: args.caption, keywords: args.keywords ?? [], hashtags };
   });
 
+export const IMAGE_NOT_CONFIGURED_MESSAGE =
+  "A geração de imagem ainda não está configurada. Você pode enviar sua própria foto pelo botão de upload.";
+
+type ImageResult = { imageUrl: string | null; notConfigured: boolean; message: string | null };
+
+/** Lê a configuração da API de imagem. Sem IMAGE_API_KEY, nenhuma chamada externa é feita. */
+function imageApiConfig() {
+  const key = process.env["IMAGE_API_KEY"];
+  if (!key) return null;
+  const url = process.env["IMAGE_API_URL"] || GATEWAY;
+  const model = process.env["IMAGE_API_MODEL"] || "google/gemini-2.5-flash-image";
+  return { key, url, model };
+}
+
+async function callImageApi(cfg: NonNullable<ReturnType<typeof imageApiConfig>>, content: unknown) {
+  const res = await fetch(cfg.url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${cfg.key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: cfg.model, messages: [{ role: "user", content }], modalities: ["image", "text"] }),
+  });
+  if (!res.ok) {
+    console.error("Image API error", res.status, await res.text());
+    if (res.status === 429) throw new Error("Limite de requisições de imagem atingido. Tente novamente em instantes.");
+    if (res.status === 402) throw new Error("Créditos da API de imagem esgotados.");
+    if (res.status === 401 || res.status === 403) throw new Error("A chave da API de imagem foi recusada. Verifique a configuração.");
+    throw new Error("Não foi possível gerar a imagem agora.");
+  }
+  const json = await res.json();
+  const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (!url) throw new Error("Imagem não gerada");
+  return url as string;
+}
+
+/** Informa se a geração de imagem está configurada (sem expor a chave). */
+export const getImageStatus = createServerFn({ method: "POST" })
+  .middleware([requireApprovedAccess])
+  .handler(async () => ({ configured: imageApiConfig() !== null }));
+
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireApprovedAccess])
   .inputValidator((d: { prompt: string }) => {
     if (!d?.prompt) throw new Error("prompt obrigatório");
     return { prompt: d.prompt.slice(0, 1500) };
   })
-  .handler(async ({ data }) => {
-    const json = await callAI({
-      model: "google/gemini-2.5-flash-image",
-      messages: [
-        {
-          role: "user",
-          content: `Square 1:1 aspect ratio Instagram post image. ${data.prompt}. High quality, polished, professional.`,
-        },
-      ],
-      modalities: ["image", "text"],
-    });
-    const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!url) throw new Error("Imagem não gerada");
-    return { imageUrl: url as string };
+  .handler(async ({ data }): Promise<ImageResult> => {
+    const cfg = imageApiConfig();
+    if (!cfg) return { imageUrl: null, notConfigured: true, message: IMAGE_NOT_CONFIGURED_MESSAGE };
+    const imageUrl = await callImageApi(
+      cfg,
+      `Square 1:1 aspect ratio Instagram post image. ${data.prompt}. High quality, polished, professional.`,
+    );
+    return { imageUrl, notConfigured: false, message: null };
   });
 
 export const editImage = createServerFn({ method: "POST" })
@@ -231,23 +263,14 @@ export const editImage = createServerFn({ method: "POST" })
     if (!d?.prompt || !d?.imageUrl) throw new Error("prompt e imageUrl obrigatórios");
     return { prompt: d.prompt.slice(0, 1500), imageUrl: d.imageUrl };
   })
-  .handler(async ({ data }) => {
-    const json = await callAI({
-      model: "google/gemini-2.5-flash-image",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: data.prompt },
-            { type: "image_url", image_url: { url: data.imageUrl } },
-          ],
-        },
-      ],
-      modalities: ["image", "text"],
-    });
-    const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!url) throw new Error("Imagem não editada");
-    return { imageUrl: url as string };
+  .handler(async ({ data }): Promise<ImageResult> => {
+    const cfg = imageApiConfig();
+    if (!cfg) return { imageUrl: null, notConfigured: true, message: IMAGE_NOT_CONFIGURED_MESSAGE };
+    const imageUrl = await callImageApi(cfg, [
+      { type: "text", text: data.prompt },
+      { type: "image_url", image_url: { url: data.imageUrl } },
+    ]);
+    return { imageUrl, notConfigured: false, message: null };
   });
 
 export type CalendarPost = {

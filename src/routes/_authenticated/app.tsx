@@ -42,7 +42,7 @@ import {
   blankSlide,
   type Slide,
 } from "@/lib/slide-types";
-import { editImage, generateCarousel, generateCaption, generateImage } from "@/lib/ai.functions";
+import { editImage, generateCarousel, generateCaption, generateImage, getImageStatus, IMAGE_NOT_CONFIGURED_MESSAGE } from "@/lib/ai.functions";
 import { consumeQuota, getQuotaBalance, type QuotaBalance } from "@/lib/quota.functions";
 
 type EditorTab = "text" | "style" | "image" | "copy";
@@ -130,6 +130,15 @@ function Editor() {
   const callConsumeQuota = useServerFn(consumeQuota);
   const callGetQuota = useServerFn(getQuotaBalance);
   const [quota, setQuota] = useState<QuotaBalance | null>(null);
+  const callImageStatus = useServerFn(getImageStatus);
+  const [imageConfigured, setImageConfigured] = useState<boolean | null>(null);
+  const [imageNotice, setImageNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    void callImageStatus()
+      .then((r) => setImageConfigured(r.configured))
+      .catch(() => setImageConfigured(null));
+  }, [callImageStatus]);
 
   useEffect(() => {
     void callGetQuota()
@@ -199,10 +208,18 @@ function Editor() {
       setActiveId(newSlides[0].id);
 
       // Gera as imagens de todos os slides em paralelo, aplicando cada uma assim que fica pronta
-      await Promise.allSettled(
+      if (imageConfigured === false) {
+        setImageNotice(IMAGE_NOT_CONFIGURED_MESSAGE);
+      } else await Promise.allSettled(
         newSlides.map(async (s) => {
           try {
-            const { imageUrl } = await callGenImage({ data: { prompt: s.imagePrompt } });
+            const r = await callGenImage({ data: { prompt: s.imagePrompt } });
+            if (r.notConfigured || !r.imageUrl) {
+              setImageConfigured(false);
+              setImageNotice(r.message ?? IMAGE_NOT_CONFIGURED_MESSAGE);
+              return;
+            }
+            const imageUrl = r.imageUrl;
             setSlides((prev) => prev.map((sl) => (sl.id === s.id ? { ...sl, imageUrl } : sl)));
           } catch {
             /* mantém o slide sem imagem */
@@ -228,6 +245,10 @@ function Editor() {
 
   const regenImage = async () => {
     if (!active) return;
+    if (imageConfigured === false) {
+      setImageNotice(IMAGE_NOT_CONFIGURED_MESSAGE);
+      return;
+    }
     setGenImageId(active.id);
     setError(null);
     try {
@@ -238,7 +259,13 @@ function Editor() {
         return;
       }
       const promptToUse = editImagePrompt.trim() || active.imagePrompt || active.text;
-      const { imageUrl } = await callGenImage({ data: { prompt: promptToUse } });
+      const r = await callGenImage({ data: { prompt: promptToUse } });
+      if (r.notConfigured || !r.imageUrl) {
+        setImageConfigured(false);
+        setImageNotice(r.message ?? IMAGE_NOT_CONFIGURED_MESSAGE);
+        return;
+      }
+      const imageUrl = r.imageUrl;
       setSlides((prev) =>
         prev.map((s) => (s.id === active.id ? { ...s, imageUrl, imagePrompt: promptToUse } : s)),
       );
@@ -252,6 +279,10 @@ function Editor() {
 
   const remixImage = async () => {
     if (!active?.imageUrl || !editImagePrompt.trim()) return;
+    if (imageConfigured === false) {
+      setImageNotice(IMAGE_NOT_CONFIGURED_MESSAGE);
+      return;
+    }
     setGenImageId(active.id);
     setError(null);
     try {
@@ -261,9 +292,15 @@ function Editor() {
         setError(q.reason ?? "Limite de criações atingido neste ciclo de 30 dias.");
         return;
       }
-      const { imageUrl } = await callEditImage({
+      const r = await callEditImage({
         data: { prompt: editImagePrompt, imageUrl: active.imageUrl },
       });
+      if (r.notConfigured || !r.imageUrl) {
+        setImageConfigured(false);
+        setImageNotice(r.message ?? IMAGE_NOT_CONFIGURED_MESSAGE);
+        return;
+      }
+      const imageUrl = r.imageUrl;
       setSlides((prev) => prev.map((s) => (s.id === active.id ? { ...s, imageUrl } : s)));
       setEditImagePrompt("");
     } catch (e) {
@@ -490,6 +527,11 @@ function Editor() {
           {error && (
             <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
               {error}
+            </div>
+          )}
+          {imageNotice && (
+            <div className="text-xs text-muted-foreground bg-secondary/60 border border-border rounded-lg px-3 py-2">
+              {imageNotice}
             </div>
           )}
           {quota && (
